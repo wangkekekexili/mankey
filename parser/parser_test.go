@@ -31,3 +31,20 @@ var add = a+b;
 		}
 	}
 }
+
+func TestReturnStatement(t *testing.T) {
+	code := `
+return 1;
+return add(1, 2);
+`
+	program, err := New(lexer.New(code)).ParseProgram()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, stat := range program.Statements {
+		_, ok := stat.(*ast.ReturnStatement)
+		if !ok {
+			t.Fatalf("expect var statement; got %v", stat)
+		}
+	}
+}

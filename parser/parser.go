@@ -42,6 +42,8 @@ func (p *Parser) parseStatement() (ast.Statement, error) {
 	switch p.currentToken.Type {
 	case token.Var:
 		return p.parseVarStatement()
+	case token.Return:
+		return p.parseReturnStatement()
 	default:
 		return nil, unexpectedToken{exp: "statement", t: p.currentToken}
 	}
@@ -53,6 +55,7 @@ func (p *Parser) parseVarStatement() (*ast.VarStatement, error) {
 	p.nextToken()
 	if p.currentToken.Type != token.Ident {
 		return nil, unexpectedToken{exp: "var statement", t: p.currentToken}
+
 	}
 	varStat.Name = &ast.Identifier{Value: p.currentToken.Literal}
 
@@ -67,4 +70,15 @@ func (p *Parser) parseVarStatement() (*ast.VarStatement, error) {
 	}
 
 	return varStat, nil
+}
+
+func (p *Parser) parseReturnStatement() (*ast.ReturnStatement, error) {
+	returnStatement := &ast.ReturnStatement{}
+
+	p.nextToken()
+	for p.currentToken.Type != token.Semicolon {
+		p.nextToken()
+	}
+
+	return returnStatement, nil
 }

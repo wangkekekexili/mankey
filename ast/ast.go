@@ -3,6 +3,10 @@ package ast
 type Statement interface{}
 type Expression interface{}
 
+type Identifier struct {
+	Value string
+}
+
 type Program struct {
 	Statements []Statement
 }
@@ -12,6 +16,6 @@ type VarStatement struct {
 	Value Expression
 }
 
-type Identifier struct {
-	Value string
+type ReturnStatement struct {
+	Value Expression
 }
