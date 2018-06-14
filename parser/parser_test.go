@@ -7,6 +7,30 @@ import (
 	"github.com/wangkekekexili/mankey/lexer"
 )
 
+func TestString(t *testing.T) {
+	program := &ast.Program{
+		Statements: []ast.Statement{
+			&ast.VarStatement{
+				Name: &ast.Identifier{
+					Value: "x",
+				},
+				Value: &ast.Identifier{
+					Value: "y",
+				},
+			},
+			&ast.ReturnStatement{
+				Value: &ast.Identifier{
+					Value: "42",
+				},
+			},
+		},
+	}
+	expStr := "var x = y;return 42;"
+	if program.String() != expStr {
+		t.Fatalf("String(): %v; want %v", program.String(), expStr)
+	}
+}
+
 func TestVarStatement(t *testing.T) {
 	code := `
 var hello = 1;
