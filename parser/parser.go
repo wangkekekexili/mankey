@@ -3,6 +3,7 @@ package parser
 import (
 	"github.com/wangkekekexili/mankey/ast"
 	"github.com/wangkekekexili/mankey/lexer"
+	"github.com/wangkekekexili/mankey/precedence"
 	"github.com/wangkekekexili/mankey/token"
 )
 
@@ -45,7 +46,7 @@ func (p *Parser) parseStatement() (ast.Statement, error) {
 	case token.Return:
 		return p.parseReturnStatement()
 	default:
-		return nil, unexpectedToken{exp: "statement", t: p.currentToken}
+		return p.parseExpressionStatement()
 	}
 }
 
@@ -81,4 +82,21 @@ func (p *Parser) parseReturnStatement() (*ast.ReturnStatement, error) {
 	}
 
 	return returnStatement, nil
+}
+
+func (p *Parser) parseExpressionStatement() (*ast.ExpressionStatement, error) {
+	expressionStatement := &ast.ExpressionStatement{}
+	var err error
+	expressionStatement.Value, err = p.parseExpression(precedence.Lowest)
+	if err != nil {
+		return nil, err
+	}
+	if p.peekToken.Type == token.Semicolon {
+		p.nextToken()
+	}
+	return expressionStatement, nil
+}
+
+func (p *Parser) parseExpression(p int) (ast.Expression, error) {
+
 }

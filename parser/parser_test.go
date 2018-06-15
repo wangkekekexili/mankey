@@ -72,3 +72,26 @@ return add(1, 2);
 		}
 	}
 }
+
+func TestIdentifierExpression(t *testing.T) {
+	code := `apple;`
+	program, err := New(lexer.New(code)).ParseProgram()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(program.Statements) != 1 {
+		t.Fatalf("expect 1 statement; got %v", program.Statements)
+	}
+
+	expressionStat, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatal("expect to get an expression statement")
+	}
+	identifier, ok := expressionStat.Value.(*ast.Identifier)
+	if !ok {
+		t.Fatal("expect to get an identifier")
+	}
+	if identifier.Value != "apple" {
+		t.Fatalf("got identifer value %v; want %v", identifier.Value, "apple")
+	}
+}
