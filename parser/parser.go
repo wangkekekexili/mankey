@@ -1,9 +1,10 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/wangkekekexili/mankey/ast"
 	"github.com/wangkekekexili/mankey/lexer"
-	"github.com/wangkekekexili/mankey/precedence"
 	"github.com/wangkekekexili/mankey/token"
 )
 
@@ -12,10 +13,19 @@ type Parser struct {
 
 	currentToken *token.Token
 	peekToken    *token.Token
+
+	prefixParseFnMap map[token.TokenType]prefixParseFn
+	infixParseFnMap  map[token.TokenType]infixParseFn
 }
 
 func New(r *lexer.Lexer) *Parser {
-	p := &Parser{r: r}
+	p := &Parser{
+		r: r,
+	}
+	p.prefixParseFnMap = map[token.TokenType]prefixParseFn{
+		token.Ident: p.parseIdentifier,
+	}
+
 	p.nextToken()
 	p.nextToken()
 	return p
@@ -87,7 +97,7 @@ func (p *Parser) parseReturnStatement() (*ast.ReturnStatement, error) {
 func (p *Parser) parseExpressionStatement() (*ast.ExpressionStatement, error) {
 	expressionStatement := &ast.ExpressionStatement{}
 	var err error
-	expressionStatement.Value, err = p.parseExpression(precedence.Lowest)
+	expressionStatement.Value, err = p.parseExpression(Lowest)
 	if err != nil {
 		return nil, err
 	}
@@ -97,6 +107,10 @@ func (p *Parser) parseExpressionStatement() (*ast.ExpressionStatement, error) {
 	return expressionStatement, nil
 }
 
-func (p *Parser) parseExpression(p int) (ast.Expression, error) {
-
+func (p *Parser) parseExpression(d precedence) (ast.Expression, error) {
+	fn, ok := p.prefixParseFnMap[p.currentToken.Type]
+	if !ok {
+		return nil, fmt.Errorf("no prefix parse function for %v", p.currentToken)
+	}
+	return fn()
 }
