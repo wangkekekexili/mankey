@@ -95,3 +95,26 @@ func TestIdentifierExpression(t *testing.T) {
 		t.Fatalf("got identifer value %v; want %v", identifier.Value, "apple")
 	}
 }
+
+func TestIntegerLiteralExpression(t *testing.T) {
+	code := `42;`
+	program, err := New(lexer.New(code)).ParseProgram()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(program.Statements) != 1 {
+		t.Fatalf("expect 1 statement; got %v", program.Statements)
+	}
+
+	expressionStat, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatal("expect to get an expression statement")
+	}
+	integerLiteral, ok := expressionStat.Value.(*ast.IntegerLiteral)
+	if !ok {
+		t.Fatal("expect to get an identifier")
+	}
+	if integerLiteral.Value != 42 {
+		t.Fatalf("got integer value %v; want %v", integerLiteral.Value, 42)
+	}
+}

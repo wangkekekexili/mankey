@@ -2,6 +2,7 @@ package ast
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -60,4 +61,12 @@ type ExpressionStatement struct {
 
 func (s *ExpressionStatement) String() string {
 	return s.Value.String()
+}
+
+type IntegerLiteral struct {
+	Value int64
+}
+
+func (s *IntegerLiteral) String() string {
+	return strconv.FormatInt(s.Value, 10)
 }
