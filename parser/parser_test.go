@@ -48,7 +48,7 @@ var add = a+b;
 	for i, stat := range program.Statements {
 		varStat, ok := stat.(*ast.VarStatement)
 		if !ok {
-			t.Fatalf("expect var statement; got %v", stat)
+			t.Fatalf("expect var statement; got %T", stat)
 		}
 		if varStat.Name.Value != expVarIdents[i] {
 			t.Fatalf("got identifier name %v; want %v", varStat.Name.Value, expVarIdents[i])
@@ -68,7 +68,7 @@ return add(1, 2);
 	for _, stat := range program.Statements {
 		_, ok := stat.(*ast.ReturnStatement)
 		if !ok {
-			t.Fatalf("expect var statement; got %v", stat)
+			t.Fatalf("expect var statement; got %T", stat)
 		}
 	}
 }
@@ -85,11 +85,11 @@ func TestIdentifierExpression(t *testing.T) {
 
 	expressionStat, ok := program.Statements[0].(*ast.ExpressionStatement)
 	if !ok {
-		t.Fatal("expect to get an expression statement")
+		t.Fatalf("expect to get an expression statement; got %T", program.Statements[0])
 	}
 	identifier, ok := expressionStat.Value.(*ast.Identifier)
 	if !ok {
-		t.Fatal("expect to get an identifier")
+		t.Fatalf("expect to get an identifier; got %T", expressionStat.Value)
 	}
 	if identifier.Value != "apple" {
 		t.Fatalf("got identifer value %v; want %v", identifier.Value, "apple")
@@ -108,11 +108,11 @@ func TestIntegerLiteralExpression(t *testing.T) {
 
 	expressionStat, ok := program.Statements[0].(*ast.ExpressionStatement)
 	if !ok {
-		t.Fatal("expect to get an expression statement")
+		t.Fatalf("expect to get an expression statement; got %T", program.Statements[0])
 	}
 	integerLiteral, ok := expressionStat.Value.(*ast.IntegerLiteral)
 	if !ok {
-		t.Fatal("expect to get an identifier")
+		t.Fatalf("expect to get an identifier; got %T", expressionStat.Value)
 	}
 	if integerLiteral.Value != 42 {
 		t.Fatalf("got integer value %v; want %v", integerLiteral.Value, 42)

@@ -4,8 +4,6 @@ import "fmt"
 
 type TokenType string
 
-// ==, !, !=
-
 const (
 	Illegal = "ILLEGAL"
 	EOF     = "EOF"
