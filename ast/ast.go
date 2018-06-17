@@ -81,3 +81,13 @@ type PrefixExpression struct {
 func (p *PrefixExpression) String() string {
 	return fmt.Sprintf("(%s%v)", p.Op, p.Value)
 }
+
+type InfixExpression struct {
+	Left  Expression
+	Op    Operator
+	Right Expression
+}
+
+func (i *InfixExpression) String() string {
+	return fmt.Sprintf("(%v%s%v)", i.Left, i.Op, i.Right)
+}

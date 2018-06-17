@@ -142,10 +142,42 @@ func TestPrefixExpression(t *testing.T) {
 		}
 		prefixExpression, ok := expressionStat.Value.(*ast.PrefixExpression)
 		if !ok {
-			t.Fatalf("expect to get an identifier; got %T", expressionStat.Value)
+			t.Fatalf("expect to get an prefix expression; got %T", expressionStat.Value)
 		}
 		if prefixExpression.Op != test.expOp {
 			t.Fatalf("got operator %v; want %v", prefixExpression.Op, test.expOp)
+		}
+	}
+}
+
+func TestInfixExpression(t *testing.T) {
+	tests := []struct {
+		code  string
+		expOp ast.Operator
+	}{
+		{"5*5;", "*"},
+		{"6/6", "/"},
+		{"42 == 42", "=="},
+	}
+	for _, test := range tests {
+		program, err := New(lexer.New(test.code)).ParseProgram()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(program.Statements) != 1 {
+			t.Fatalf("expect 1 statement; got %v", program.Statements)
+		}
+
+		expressionStat, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("expect to get an expression statement; got %T", program.Statements[0])
+		}
+		infixExpression, ok := expressionStat.Value.(*ast.InfixExpression)
+		if !ok {
+			t.Fatalf("expect to get an infix expression; got %T", expressionStat.Value)
+		}
+		if infixExpression.Op != test.expOp {
+			t.Fatalf("got operator %v; want %v", infixExpression.Op, test.expOp)
 		}
 	}
 }

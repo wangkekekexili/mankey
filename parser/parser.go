@@ -1,8 +1,6 @@
 package parser
 
 import (
-	"fmt"
-
 	"github.com/wangkekekexili/mankey/ast"
 	"github.com/wangkekekexili/mankey/lexer"
 	"github.com/wangkekekexili/mankey/token"
@@ -27,6 +25,18 @@ func New(r *lexer.Lexer) *Parser {
 		token.Number: p.parseIntegerLiteral,
 		token.Minus:  p.parsePrefixExpression,
 		token.Not:    p.parsePrefixExpression,
+	}
+	p.infixParseFnMap = map[token.TokenType]infixParseFn{
+		token.Equal:    p.parseInfixExpression,
+		token.NotEqual: p.parseInfixExpression,
+		token.Lt:       p.parseInfixExpression,
+		token.Lte:      p.parseInfixExpression,
+		token.Gt:       p.parseInfixExpression,
+		token.Gte:      p.parseInfixExpression,
+		token.Add:      p.parseInfixExpression,
+		token.Minus:    p.parseInfixExpression,
+		token.Multiply: p.parseInfixExpression,
+		token.Divide:   p.parseInfixExpression,
 	}
 
 	p.nextToken()
@@ -68,14 +78,14 @@ func (p *Parser) parseVarStatement() (*ast.VarStatement, error) {
 
 	p.nextToken()
 	if p.currentToken.Type != token.Ident {
-		return nil, unexpectedToken{exp: "var statement", t: p.currentToken}
+		return nil, errUnexpectedToken{exp: "var statement", t: p.currentToken}
 
 	}
 	varStat.Name = &ast.Identifier{Value: p.currentToken.Literal}
 
 	p.nextToken()
 	if p.currentToken.Type != token.Assign {
-		return nil, unexpectedToken{exp: "=", t: p.currentToken}
+		return nil, errUnexpectedToken{exp: "=", t: p.currentToken}
 	}
 
 	// skip expression for now
@@ -111,9 +121,24 @@ func (p *Parser) parseExpressionStatement() (*ast.ExpressionStatement, error) {
 }
 
 func (p *Parser) parseExpression(d precedence) (ast.Expression, error) {
-	fn, ok := p.prefixParseFnMap[p.currentToken.Type]
+	prefixFn, ok := p.prefixParseFnMap[p.currentToken.Type]
 	if !ok {
-		return nil, fmt.Errorf("no prefix parse function for %v", p.currentToken)
+		return nil, errNoPrefixParseFunction{t: p.currentToken}
 	}
-	return fn()
+	expr, err := prefixFn()
+	if err != nil {
+		return nil, err
+	}
+	for p.peekToken.Type != token.Semicolon && d < p.peekPrecedence() {
+		p.nextToken()
+		infixFn, ok := p.infixParseFnMap[p.currentToken.Type]
+		if !ok {
+			return nil, errNoInfixParseFunction{t: p.currentToken}
+		}
+		expr, err = infixFn(expr)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return expr, nil
 }
