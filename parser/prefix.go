@@ -17,3 +17,14 @@ func (p *Parser) parseIntegerLiteral() (ast.Expression, error) {
 	}
 	return &ast.IntegerLiteral{Value: v}, nil
 }
+
+func (p *Parser) parsePrefixExpression() (ast.Expression, error) {
+	prefixExpression := &ast.PrefixExpression{Op: ast.Operator(p.currentToken.Literal)}
+	p.nextToken()
+	expr, err := p.parseExpression(Prefix)
+	if err != nil {
+		return nil, err
+	}
+	prefixExpression.Value = expr
+	return prefixExpression, nil
+}

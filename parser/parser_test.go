@@ -118,3 +118,34 @@ func TestIntegerLiteralExpression(t *testing.T) {
 		t.Fatalf("got integer value %v; want %v", integerLiteral.Value, 42)
 	}
 }
+
+func TestPrefixExpression(t *testing.T) {
+	tests := []struct {
+		code  string
+		expOp ast.Operator
+	}{
+		{"-5;", "-"},
+		{"!10", "!"},
+	}
+	for _, test := range tests {
+		program, err := New(lexer.New(test.code)).ParseProgram()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(program.Statements) != 1 {
+			t.Fatalf("expect 1 statement; got %v", program.Statements)
+		}
+
+		expressionStat, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("expect to get an expression statement; got %T", program.Statements[0])
+		}
+		prefixExpression, ok := expressionStat.Value.(*ast.PrefixExpression)
+		if !ok {
+			t.Fatalf("expect to get an identifier; got %T", expressionStat.Value)
+		}
+		if prefixExpression.Op != test.expOp {
+			t.Fatalf("got operator %v; want %v", prefixExpression.Op, test.expOp)
+		}
+	}
+}

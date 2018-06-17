@@ -70,3 +70,14 @@ type IntegerLiteral struct {
 func (s *IntegerLiteral) String() string {
 	return strconv.FormatInt(s.Value, 10)
 }
+
+type Operator string
+
+type PrefixExpression struct {
+	Op    Operator
+	Value Expression
+}
+
+func (p *PrefixExpression) String() string {
+	return fmt.Sprintf("(%s%v)", p.Op, p.Value)
+}
