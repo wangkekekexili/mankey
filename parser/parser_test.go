@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/wangkekekexili/mankey/ast"
@@ -178,6 +179,81 @@ func TestInfixExpression(t *testing.T) {
 		}
 		if infixExpression.Op != test.expOp {
 			t.Fatalf("got operator %v; want %v", infixExpression.Op, test.expOp)
+		}
+	}
+}
+
+func TestParseOperatorPrecedence(t *testing.T) {
+	tests := []struct {
+		expr          string
+		expExpression ast.Expression
+	}{
+		{
+			expr:          "42",
+			expExpression: &ast.IntegerLiteral{Value: 42},
+		},
+		{
+			expr: "-42",
+			expExpression: &ast.PrefixExpression{
+				Op:    "-",
+				Value: &ast.IntegerLiteral{Value: 42},
+			},
+		},
+		{
+			expr: "5+6",
+			expExpression: &ast.InfixExpression{
+				Left:  &ast.IntegerLiteral{Value: 5},
+				Op:    "+",
+				Right: &ast.IntegerLiteral{Value: 6},
+			},
+		},
+		{
+			expr: "5+6",
+			expExpression: &ast.InfixExpression{
+				Left:  &ast.IntegerLiteral{Value: 5},
+				Op:    "+",
+				Right: &ast.IntegerLiteral{Value: 6},
+			},
+		},
+		{
+			expr: "a+b*c",
+			expExpression: &ast.InfixExpression{
+				Left: &ast.Identifier{Value: "a"},
+				Op:   "+",
+				Right: &ast.InfixExpression{
+					Left:  &ast.Identifier{Value: "b"},
+					Op:    "*",
+					Right: &ast.Identifier{Value: "c"},
+				},
+			},
+		},
+		{
+			expr: "1*3 == 3",
+			expExpression: &ast.InfixExpression{
+				Left: &ast.InfixExpression{
+					Left:  &ast.IntegerLiteral{Value: 1},
+					Op:    "*",
+					Right: &ast.IntegerLiteral{Value: 3},
+				},
+				Op:    "==",
+				Right: &ast.IntegerLiteral{Value: 3},
+			},
+		},
+	}
+	for _, test := range tests {
+		gotProgram, err := New(lexer.New(test.expr + ";")).ParseProgram()
+		if err != nil {
+			t.Fatal(err)
+		}
+		expProgram := &ast.Program{
+			Statements: []ast.Statement{
+				&ast.ExpressionStatement{
+					Value: test.expExpression,
+				},
+			},
+		}
+		if !reflect.DeepEqual(expProgram, gotProgram) {
+			t.Fatalf("expected to get %v; got %v", expProgram, gotProgram)
 		}
 	}
 }
