@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/wangkekekexili/mankey/ast"
+	"github.com/wangkekekexili/mankey/token"
 )
 
 func (p *Parser) parseIdentifier() (ast.Expression, error) {
@@ -35,4 +36,17 @@ func (p *Parser) parsePrefixExpression() (ast.Expression, error) {
 	}
 	prefixExpression.Value = expr
 	return prefixExpression, nil
+}
+
+func (p *Parser) parseGroupedExpression() (ast.Expression, error) {
+	p.nextToken()
+	expr, err := p.parseExpression(Lowest)
+	if err != nil {
+		return nil, err
+	}
+	if p.peekToken.Type != token.RParen {
+		return nil, errUnexpectedToken{t: p.peekToken, exp: ")"}
+	}
+	p.nextToken()
+	return expr, nil
 }

@@ -27,6 +27,7 @@ func New(r *lexer.Lexer) *Parser {
 		token.Not:    p.parsePrefixExpression,
 		token.True:   p.parseBoolean,
 		token.False:  p.parseBoolean,
+		token.LParen: p.parseGroupedExpression,
 	}
 	p.infixParseFnMap = map[token.TokenType]infixParseFn{
 		token.Equal:    p.parseInfixExpression,

@@ -224,6 +224,29 @@ func TestParseOperatorPrecedence(t *testing.T) {
 				Right: &ast.IntegerLiteral{Value: 3},
 			},
 		},
+		{
+			expr: "(2+2)*3",
+			expExpression: &ast.InfixExpression{
+				Left: &ast.InfixExpression{
+					Left:  &ast.IntegerLiteral{Value: 2},
+					Op:    "+",
+					Right: &ast.IntegerLiteral{Value: 2},
+				},
+				Op:    "*",
+				Right: &ast.IntegerLiteral{Value: 3},
+			},
+		},
+		{
+			expr: "!(true == false)",
+			expExpression: &ast.PrefixExpression{
+				Op: "!",
+				Value: &ast.InfixExpression{
+					Left:  &ast.Boolean{Value: true},
+					Op:    "==",
+					Right: &ast.Boolean{Value: false},
+				},
+			},
+		},
 	}
 	for _, test := range tests {
 		gotProgram, err := New(lexer.New(test.expr + ";")).ParseProgram()
