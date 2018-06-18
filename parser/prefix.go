@@ -50,3 +50,34 @@ func (p *Parser) parseGroupedExpression() (ast.Expression, error) {
 	p.nextToken()
 	return expr, nil
 }
+
+func (p *Parser) parseIfExpression() (ast.Expression, error) {
+	ifExpression := &ast.IfExpression{}
+
+	p.nextToken()
+	if p.currentToken.Type != token.LParen {
+		return nil, errUnexpectedToken{t: p.currentToken, exp: "("}
+	}
+	p.nextToken()
+	expr, err := p.parseExpression(Lowest)
+	if err != nil {
+		return nil, err
+	}
+	ifExpression.Condition = expr
+	p.nextToken()
+	if p.currentToken.Type != token.RParen {
+		return nil, errUnexpectedToken{t: p.currentToken, exp: ")"}
+	}
+
+	p.nextToken()
+	if p.currentToken.Type != token.LBrace {
+		return nil, errUnexpectedToken{t: p.currentToken, exp: "{"}
+	}
+	block, err := p.parseBlockStatement()
+	if err != nil {
+		return nil, err
+	}
+	ifExpression.Consequence = block
+
+	return ifExpression, nil
+}

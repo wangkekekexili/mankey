@@ -28,6 +28,7 @@ func New(r *lexer.Lexer) *Parser {
 		token.True:   p.parseBoolean,
 		token.False:  p.parseBoolean,
 		token.LParen: p.parseGroupedExpression,
+		token.If:     p.parseIfExpression,
 	}
 	p.infixParseFnMap = map[token.TokenType]infixParseFn{
 		token.Equal:    p.parseInfixExpression,
@@ -63,6 +64,24 @@ func (p *Parser) ParseProgram() (*ast.Program, error) {
 		p.nextToken()
 	}
 	return program, nil
+}
+
+func (p *Parser) parseBlockStatement() (*ast.BlockStatement, error) {
+	block := &ast.BlockStatement{}
+
+	p.nextToken()
+	for p.currentToken.Type != token.RBrace && p.currentToken.Type != token.EOF {
+		stat, err := p.parseStatement()
+		if err != nil {
+			return nil, err
+		}
+		block.Statements = append(block.Statements, stat)
+		p.nextToken()
+	}
+	if p.currentToken.Type != token.RBrace {
+		return nil, errUnexpectedToken{t: p.currentToken, exp: "}"}
+	}
+	return block, nil
 }
 
 func (p *Parser) parseStatement() (ast.Statement, error) {

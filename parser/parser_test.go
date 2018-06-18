@@ -266,6 +266,27 @@ func TestParseOperatorPrecedence(t *testing.T) {
 	}
 }
 
+func TestIfExpression(t *testing.T) {
+	expressionStat, err := assertOneExpressionStatement("if (a < b) { 42 }")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ifExpression, ok := expressionStat.Value.(*ast.IfExpression)
+	if !ok {
+		t.Fatalf("expect to get an if expression; got %T", expressionStat.Value)
+	}
+	_, ok = ifExpression.Condition.(*ast.InfixExpression)
+	if !ok {
+		t.Fatalf("expect to get an infix expression; got %T", ifExpression.Condition)
+	}
+	if ifExpression.Consequence == nil {
+		t.Fatal("expect non-nil consequence")
+	}
+	if ifExpression.Alternative != nil {
+		t.Fatal("expect nil alternative")
+	}
+}
+
 func assertOneExpressionStatement(code string) (*ast.ExpressionStatement, error) {
 	p, err := New(lexer.New(code)).ParseProgram()
 	if err != nil {

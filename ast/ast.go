@@ -38,6 +38,20 @@ func (p *Program) String() string {
 	return s.String()
 }
 
+type BlockStatement struct {
+	Statements []Statement
+}
+
+func (b *BlockStatement) String() string {
+	s := strings.Builder{}
+	s.WriteByte('{')
+	for _, stat := range b.Statements {
+		s.WriteString(stat.String())
+	}
+	s.WriteByte('}')
+	return s.String()
+}
+
 type VarStatement struct {
 	Name  *Identifier
 	Value Expression
@@ -98,4 +112,18 @@ type InfixExpression struct {
 
 func (i *InfixExpression) String() string {
 	return fmt.Sprintf("(%v%s%v)", i.Left, i.Op, i.Right)
+}
+
+type IfExpression struct {
+	Condition   Expression
+	Consequence *BlockStatement
+	Alternative *BlockStatement
+}
+
+func (i *IfExpression) String() string {
+	s := fmt.Sprintf("if (%v) %v", i.Condition, i.Consequence)
+	if i.Alternative != nil {
+		s += fmt.Sprintf(" else %v", i.Alternative)
+	}
+	return s
 }
