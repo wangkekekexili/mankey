@@ -124,6 +124,26 @@ func TestPrefixExpression(t *testing.T) {
 	}
 }
 
+func TestBooleanExpression(t *testing.T) {
+	tests := []struct {
+		code    string
+		expBool bool
+	}{
+		{"true;", true},
+		{"false;", false},
+	}
+	for _, test := range tests {
+		expressionStat, err := assertOneExpressionStatement(test.code)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = assertBoolean(expressionStat.Value, test.expBool)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
 func TestInfixExpression(t *testing.T) {
 	tests := []struct {
 		code  string
@@ -265,6 +285,17 @@ func assertIdentifier(e ast.Expression, v string) error {
 	}
 	if identifier.Value != v {
 		return fmt.Errorf("expect to get %v; got %v", v, identifier.Value)
+	}
+	return nil
+}
+
+func assertBoolean(e ast.Expression, v bool) error {
+	boolean, ok := e.(*ast.Boolean)
+	if !ok {
+		return fmt.Errorf("expect to get a boolean; got %T", e)
+	}
+	if boolean.Value != v {
+		return fmt.Errorf("expect to get %v; got %v", v, boolean.Value)
 	}
 	return nil
 }

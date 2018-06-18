@@ -10,6 +10,14 @@ func (p *Parser) parseIdentifier() (ast.Expression, error) {
 	return &ast.Identifier{Value: p.currentToken.Literal}, nil
 }
 
+func (p *Parser) parseBoolean() (ast.Expression, error) {
+	v, err := strconv.ParseBool(p.currentToken.Literal)
+	if err != nil {
+		return nil, err
+	}
+	return &ast.Boolean{Value: v}, nil
+}
+
 func (p *Parser) parseIntegerLiteral() (ast.Expression, error) {
 	v, err := strconv.ParseInt(p.currentToken.Literal, 10, 64)
 	if err != nil {

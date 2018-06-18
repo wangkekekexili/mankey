@@ -63,6 +63,14 @@ func (s *ExpressionStatement) String() string {
 	return s.Value.String()
 }
 
+type Boolean struct {
+	Value bool
+}
+
+func (b *Boolean) String() string {
+	return strconv.FormatBool(b.Value)
+}
+
 type IntegerLiteral struct {
 	Value int64
 }
