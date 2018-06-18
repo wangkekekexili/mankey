@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -76,70 +77,41 @@ return add(1, 2);
 
 func TestIdentifierExpression(t *testing.T) {
 	code := `apple;`
-	program, err := New(lexer.New(code)).ParseProgram()
+	expressionStat, err := assertOneExpressionStatement(code)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(program.Statements) != 1 {
-		t.Fatalf("expect 1 statement; got %v", program.Statements)
-	}
-
-	expressionStat, ok := program.Statements[0].(*ast.ExpressionStatement)
-	if !ok {
-		t.Fatalf("expect to get an expression statement; got %T", program.Statements[0])
-	}
-	identifier, ok := expressionStat.Value.(*ast.Identifier)
-	if !ok {
-		t.Fatalf("expect to get an identifier; got %T", expressionStat.Value)
-	}
-	if identifier.Value != "apple" {
-		t.Fatalf("got identifer value %v; want %v", identifier.Value, "apple")
+	err = assertIdentifier(expressionStat.Value, "apple")
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 
 func TestIntegerLiteralExpression(t *testing.T) {
 	code := `42;`
-	program, err := New(lexer.New(code)).ParseProgram()
+	expressionStat, err := assertOneExpressionStatement(code)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(program.Statements) != 1 {
-		t.Fatalf("expect 1 statement; got %v", program.Statements)
-	}
-
-	expressionStat, ok := program.Statements[0].(*ast.ExpressionStatement)
-	if !ok {
-		t.Fatalf("expect to get an expression statement; got %T", program.Statements[0])
-	}
-	integerLiteral, ok := expressionStat.Value.(*ast.IntegerLiteral)
-	if !ok {
-		t.Fatalf("expect to get an identifier; got %T", expressionStat.Value)
-	}
-	if integerLiteral.Value != 42 {
-		t.Fatalf("got integer value %v; want %v", integerLiteral.Value, 42)
+	err = assertIntegerLiteral(expressionStat.Value, 42)
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 
 func TestPrefixExpression(t *testing.T) {
 	tests := []struct {
-		code  string
-		expOp ast.Operator
+		code     string
+		expOp    ast.Operator
+		expValue int
 	}{
-		{"-5;", "-"},
-		{"!10", "!"},
+		{"-5;", "-", 5},
+		{"!10", "!", 10},
 	}
 	for _, test := range tests {
-		program, err := New(lexer.New(test.code)).ParseProgram()
+		expressionStat, err := assertOneExpressionStatement(test.code)
 		if err != nil {
 			t.Fatal(err)
-		}
-		if len(program.Statements) != 1 {
-			t.Fatalf("expect 1 statement; got %v", program.Statements)
-		}
-
-		expressionStat, ok := program.Statements[0].(*ast.ExpressionStatement)
-		if !ok {
-			t.Fatalf("expect to get an expression statement; got %T", program.Statements[0])
 		}
 		prefixExpression, ok := expressionStat.Value.(*ast.PrefixExpression)
 		if !ok {
@@ -148,6 +120,7 @@ func TestPrefixExpression(t *testing.T) {
 		if prefixExpression.Op != test.expOp {
 			t.Fatalf("got operator %v; want %v", prefixExpression.Op, test.expOp)
 		}
+		assertIntegerLiteral(prefixExpression.Value, test.expValue)
 	}
 }
 
@@ -161,17 +134,9 @@ func TestInfixExpression(t *testing.T) {
 		{"42 == 42", "=="},
 	}
 	for _, test := range tests {
-		program, err := New(lexer.New(test.code)).ParseProgram()
+		expressionStat, err := assertOneExpressionStatement(test.code)
 		if err != nil {
 			t.Fatal(err)
-		}
-		if len(program.Statements) != 1 {
-			t.Fatalf("expect 1 statement; got %v", program.Statements)
-		}
-
-		expressionStat, ok := program.Statements[0].(*ast.ExpressionStatement)
-		if !ok {
-			t.Fatalf("expect to get an expression statement; got %T", program.Statements[0])
 		}
 		infixExpression, ok := expressionStat.Value.(*ast.InfixExpression)
 		if !ok {
@@ -256,4 +221,50 @@ func TestParseOperatorPrecedence(t *testing.T) {
 			t.Fatalf("expected to get %v; got %v", expProgram, gotProgram)
 		}
 	}
+}
+
+func assertOneExpressionStatement(code string) (*ast.ExpressionStatement, error) {
+	p, err := New(lexer.New(code)).ParseProgram()
+	if err != nil {
+		return nil, err
+	}
+	if p == nil || len(p.Statements) != 1 {
+		return nil, fmt.Errorf("expect to get 1 statement; got %v", p)
+	}
+	expressionStatement, ok := p.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		return nil, fmt.Errorf("expect to get an expression statement; got %T", p.Statements[0])
+	}
+	return expressionStatement, nil
+}
+
+func assertIntegerLiteral(e ast.Expression, vi interface{}) error {
+	var v int64
+	switch vi := vi.(type) {
+	case int:
+		v = int64(vi)
+	case int64:
+		v = int64(vi)
+	default:
+		return fmt.Errorf("assertIntegerLiteral accepts an integer literal as the second parameter")
+	}
+	intLiteral, ok := e.(*ast.IntegerLiteral)
+	if !ok {
+		return fmt.Errorf("expect to get interger literal; got %T", e)
+	}
+	if intLiteral.Value != v {
+		return fmt.Errorf("expect to get %v; got %v", v, intLiteral.Value)
+	}
+	return nil
+}
+
+func assertIdentifier(e ast.Expression, v string) error {
+	identifier, ok := e.(*ast.Identifier)
+	if !ok {
+		return fmt.Errorf("expect to get an identifier; got %T", e)
+	}
+	if identifier.Value != v {
+		return fmt.Errorf("expect to get %v; got %v", v, identifier.Value)
+	}
+	return nil
 }
