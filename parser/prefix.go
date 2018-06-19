@@ -79,5 +79,18 @@ func (p *Parser) parseIfExpression() (ast.Expression, error) {
 	}
 	ifExpression.Consequence = block
 
+	if p.peekToken.Type == token.Else {
+		p.nextToken()
+		p.nextToken()
+		if p.currentToken.Type != token.LBrace {
+			return nil, errUnexpectedToken{t: p.currentToken, exp: "{"}
+		}
+		block, err := p.parseBlockStatement()
+		if err != nil {
+			return nil, err
+		}
+		ifExpression.Alternative = block
+	}
+
 	return ifExpression, nil
 }

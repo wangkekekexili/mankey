@@ -287,6 +287,30 @@ func TestIfExpression(t *testing.T) {
 	}
 }
 
+func TestIfElseExpression(t *testing.T) {
+	expressionStat, err := assertOneExpressionStatement("if (a < b) { 42 } else { a; b;}")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ifExpression, ok := expressionStat.Value.(*ast.IfExpression)
+	if !ok {
+		t.Fatalf("expect to get an if expression; got %T", expressionStat.Value)
+	}
+	_, ok = ifExpression.Condition.(*ast.InfixExpression)
+	if !ok {
+		t.Fatalf("expect to get an infix expression; got %T", ifExpression.Condition)
+	}
+	if ifExpression.Consequence == nil {
+		t.Fatal("expect non-nil consequence")
+	}
+	if ifExpression.Alternative == nil {
+		t.Fatal("expect non-nil alternative")
+	}
+	if len(ifExpression.Alternative.Statements) != 2 {
+		t.Fatalf("expect to get 2 statements in the else block; got %v", ifExpression.Alternative)
+	}
+}
+
 func assertOneExpressionStatement(code string) (*ast.ExpressionStatement, error) {
 	p, err := New(lexer.New(code)).ParseProgram()
 	if err != nil {
