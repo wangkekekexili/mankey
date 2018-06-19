@@ -311,6 +311,58 @@ func TestIfElseExpression(t *testing.T) {
 	}
 }
 
+func TestFunction(t *testing.T) {
+	expressionStat, err := assertOneExpressionStatement("func (x, y) {return x+y;}")
+	if err != nil {
+		t.Fatal(err)
+	}
+	function, ok := expressionStat.Value.(*ast.Function)
+	if !ok {
+		t.Fatalf("expect to get a function; got %T", expressionStat.Value)
+	}
+	if len(function.Parameters) != 2 {
+		t.Fatalf("expect to get 2 parameters; got %v", function.Parameters)
+	}
+	if function.Parameters[0].Value != "x" {
+		t.Fatalf("expect first parameter to be x; got %v", function.Parameters[0].Value)
+	}
+	if function.Parameters[1].Value != "y" {
+		t.Fatalf("expect second parameter to be y; got %v", function.Parameters[1].Value)
+	}
+	if len(function.Body.Statements) != 1 {
+		t.Fatalf("expect 1 statement in the block; got %v", function.Body.Statements)
+	}
+}
+
+func TestFunctionParameters(t *testing.T) {
+	tests := []struct {
+		code          string
+		expParameters []string
+	}{
+		{"func() {return 0;}", nil},
+		{"func(a) {a;}", []string{"a"}},
+		{"func(x, y) {x+y;}", []string{"x", "y"}},
+	}
+	for _, test := range tests {
+		var expIdentifiers []*ast.Identifier
+		for _, para := range test.expParameters {
+			expIdentifiers = append(expIdentifiers, &ast.Identifier{Value: para})
+		}
+
+		expressionStat, err := assertOneExpressionStatement(test.code)
+		if err != nil {
+			t.Fatal(err)
+		}
+		function, ok := expressionStat.Value.(*ast.Function)
+		if !ok {
+			t.Fatalf("expect to get a function; got %T", expressionStat.Value)
+		}
+		if !reflect.DeepEqual(function.Parameters, expIdentifiers) {
+			t.Fatalf("got parameters %v; want %v", function.Parameters, expIdentifiers)
+		}
+	}
+}
+
 func assertOneExpressionStatement(code string) (*ast.ExpressionStatement, error) {
 	p, err := New(lexer.New(code)).ParseProgram()
 	if err != nil {

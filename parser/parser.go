@@ -29,6 +29,7 @@ func New(r *lexer.Lexer) *Parser {
 		token.False:  p.parseBoolean,
 		token.LParen: p.parseGroupedExpression,
 		token.If:     p.parseIfExpression,
+		token.Func:   p.parseFunction,
 	}
 	p.infixParseFnMap = map[token.TokenType]infixParseFn{
 		token.Equal:    p.parseInfixExpression,
@@ -163,4 +164,35 @@ func (p *Parser) parseExpression(d precedence) (ast.Expression, error) {
 		}
 	}
 	return expr, nil
+}
+
+func (p *Parser) parseParameterList() ([]*ast.Identifier, error) {
+	if p.peekToken.Type == token.RParen {
+		p.nextToken()
+		return nil, nil
+	}
+
+	var list []*ast.Identifier
+
+	p.nextToken()
+	if p.currentToken.Type != token.Ident {
+		return nil, errUnexpectedToken{t: p.currentToken, exp: "identifier"}
+	}
+	list = append(list, &ast.Identifier{Value: p.currentToken.Literal})
+
+	for p.peekToken.Type == token.Comma {
+		p.nextToken()
+		p.nextToken()
+		if p.currentToken.Type != token.Ident {
+			return nil, errUnexpectedToken{t: p.currentToken, exp: "identifier"}
+		}
+		list = append(list, &ast.Identifier{Value: p.currentToken.Literal})
+	}
+
+	if p.peekToken.Type != token.RParen {
+		return nil, errUnexpectedToken{t: p.peekToken, exp: ")"}
+	}
+	p.nextToken()
+
+	return list, nil
 }

@@ -127,3 +127,16 @@ func (i *IfExpression) String() string {
 	}
 	return s
 }
+
+type Function struct {
+	Parameters []*Identifier
+	Body       *BlockStatement
+}
+
+func (f *Function) String() string {
+	paramStrs := make([]string, 0, len(f.Parameters))
+	for _, para := range f.Parameters {
+		paramStrs = append(paramStrs, para.String())
+	}
+	return fmt.Sprintf("func (%v) %v", strings.Join(paramStrs, ", "), f.Body)
+}

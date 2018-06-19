@@ -94,3 +94,28 @@ func (p *Parser) parseIfExpression() (ast.Expression, error) {
 
 	return ifExpression, nil
 }
+
+func (p *Parser) parseFunction() (ast.Expression, error) {
+	function := &ast.Function{}
+
+	p.nextToken()
+	if p.currentToken.Type != token.LParen {
+		return nil, errUnexpectedToken{t: p.currentToken, exp: "("}
+	}
+	list, err := p.parseParameterList()
+	if err != nil {
+		return nil, err
+	}
+	function.Parameters = list
+
+	p.nextToken()
+	if p.currentToken.Type != token.LBrace {
+		return nil, errUnexpectedToken{t: p.currentToken, exp: "{"}
+	}
+	function.Body, err = p.parseBlockStatement()
+	if err != nil {
+		return nil, err
+	}
+
+	return function, nil
+}
