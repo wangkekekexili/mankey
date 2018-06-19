@@ -175,29 +175,29 @@ func TestParseOperatorPrecedence(t *testing.T) {
 	}{
 		{
 			expr:          "42",
-			expExpression: &ast.IntegerLiteral{Value: 42},
+			expExpression: &ast.Integer{Value: 42},
 		},
 		{
 			expr: "-42",
 			expExpression: &ast.PrefixExpression{
 				Op:    "-",
-				Value: &ast.IntegerLiteral{Value: 42},
+				Value: &ast.Integer{Value: 42},
 			},
 		},
 		{
 			expr: "5+6",
 			expExpression: &ast.InfixExpression{
-				Left:  &ast.IntegerLiteral{Value: 5},
+				Left:  &ast.Integer{Value: 5},
 				Op:    "+",
-				Right: &ast.IntegerLiteral{Value: 6},
+				Right: &ast.Integer{Value: 6},
 			},
 		},
 		{
 			expr: "5+6",
 			expExpression: &ast.InfixExpression{
-				Left:  &ast.IntegerLiteral{Value: 5},
+				Left:  &ast.Integer{Value: 5},
 				Op:    "+",
-				Right: &ast.IntegerLiteral{Value: 6},
+				Right: &ast.Integer{Value: 6},
 			},
 		},
 		{
@@ -216,24 +216,24 @@ func TestParseOperatorPrecedence(t *testing.T) {
 			expr: "1*3 == 3",
 			expExpression: &ast.InfixExpression{
 				Left: &ast.InfixExpression{
-					Left:  &ast.IntegerLiteral{Value: 1},
+					Left:  &ast.Integer{Value: 1},
 					Op:    "*",
-					Right: &ast.IntegerLiteral{Value: 3},
+					Right: &ast.Integer{Value: 3},
 				},
 				Op:    "==",
-				Right: &ast.IntegerLiteral{Value: 3},
+				Right: &ast.Integer{Value: 3},
 			},
 		},
 		{
 			expr: "(2+2)*3",
 			expExpression: &ast.InfixExpression{
 				Left: &ast.InfixExpression{
-					Left:  &ast.IntegerLiteral{Value: 2},
+					Left:  &ast.Integer{Value: 2},
 					Op:    "+",
-					Right: &ast.IntegerLiteral{Value: 2},
+					Right: &ast.Integer{Value: 2},
 				},
 				Op:    "*",
-				Right: &ast.IntegerLiteral{Value: 3},
+				Right: &ast.Integer{Value: 3},
 			},
 		},
 		{
@@ -336,7 +336,7 @@ func assertIntegerLiteral(e ast.Expression, vi interface{}) error {
 	default:
 		return fmt.Errorf("assertIntegerLiteral accepts an integer literal as the second parameter")
 	}
-	intLiteral, ok := e.(*ast.IntegerLiteral)
+	intLiteral, ok := e.(*ast.Integer)
 	if !ok {
 		return fmt.Errorf("expect to get interger literal; got %T", e)
 	}

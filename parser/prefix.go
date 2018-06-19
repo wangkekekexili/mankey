@@ -19,12 +19,12 @@ func (p *Parser) parseBoolean() (ast.Expression, error) {
 	return &ast.Boolean{Value: v}, nil
 }
 
-func (p *Parser) parseIntegerLiteral() (ast.Expression, error) {
+func (p *Parser) parseInteger() (ast.Expression, error) {
 	v, err := strconv.ParseInt(p.currentToken.Literal, 10, 64)
 	if err != nil {
 		return nil, err
 	}
-	return &ast.IntegerLiteral{Value: v}, nil
+	return &ast.Integer{Value: v}, nil
 }
 
 func (p *Parser) parsePrefixExpression() (ast.Expression, error) {

@@ -22,7 +22,7 @@ func New(r *lexer.Lexer) *Parser {
 	}
 	p.prefixParseFnMap = map[token.TokenType]prefixParseFn{
 		token.Ident:  p.parseIdentifier,
-		token.Number: p.parseIntegerLiteral,
+		token.Number: p.parseInteger,
 		token.Minus:  p.parsePrefixExpression,
 		token.Not:    p.parsePrefixExpression,
 		token.True:   p.parseBoolean,

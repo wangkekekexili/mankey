@@ -85,11 +85,11 @@ func (b *Boolean) String() string {
 	return strconv.FormatBool(b.Value)
 }
 
-type IntegerLiteral struct {
+type Integer struct {
 	Value int64
 }
 
-func (s *IntegerLiteral) String() string {
+func (s *Integer) String() string {
 	return strconv.FormatInt(s.Value, 10)
 }
 
