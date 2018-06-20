@@ -12,6 +12,6 @@ func (i *Integer) Type() ObjectType {
 	return ObjInteger
 }
 
-func (i *Integer) Inspect() string {
-	return strconv.FormatInt(i.Value, 64)
+func (i *Integer) String() string {
+	return strconv.FormatInt(i.Value, 10)
 }

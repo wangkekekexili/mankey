@@ -12,6 +12,6 @@ func (b *Boolean) Type() ObjectType {
 	return ObjBoolean
 }
 
-func (b *Boolean) Inspect() string {
+func (b *Boolean) String() string {
 	return strconv.FormatBool(b.Value)
 }

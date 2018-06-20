@@ -8,6 +8,6 @@ func (n *Null) Type() ObjectType {
 	return ObjNull
 }
 
-func (n *Null) Inspect() string {
+func (n *Null) String() string {
 	return ObjNull
 }

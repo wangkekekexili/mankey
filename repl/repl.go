@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/wangkekekexili/mankey/evaluator"
 	"github.com/wangkekekexili/mankey/lexer"
 	"github.com/wangkekekexili/mankey/parser"
 )
 
 func Do(r io.Reader, w io.Writer) {
-
 	fmt.Fprintf(w, ">> ")
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
@@ -24,7 +24,13 @@ func Do(r io.Reader, w io.Writer) {
 			fmt.Fprintf(w, ">> ")
 			continue
 		}
-		fmt.Fprintln(w, p)
+		v, err := evaluator.Eval(p)
+		if err != nil {
+			fmt.Fprintln(w, err)
+			fmt.Fprintf(w, ">> ")
+			continue
+		}
+		fmt.Fprintln(w, v)
 		fmt.Fprintf(w, ">> ")
 	}
 }
