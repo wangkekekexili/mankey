@@ -111,8 +111,14 @@ func (p *Parser) parseVarStatement() (*ast.VarStatement, error) {
 		return nil, errUnexpectedToken{exp: "=", t: p.currentToken}
 	}
 
-	// skip expression for now
-	for p.currentToken.Type != token.Semicolon {
+	p.nextToken()
+	expr, err := p.parseExpression(Lowest)
+	if err != nil {
+		return nil, err
+	}
+	varStat.Value = expr
+
+	if p.peekToken.Type == token.Semicolon {
 		p.nextToken()
 	}
 
@@ -123,7 +129,13 @@ func (p *Parser) parseReturnStatement() (*ast.ReturnStatement, error) {
 	returnStatement := &ast.ReturnStatement{}
 
 	p.nextToken()
-	for p.currentToken.Type != token.Semicolon {
+	expr, err := p.parseExpression(Lowest)
+	if err != nil {
+		return nil, err
+	}
+	returnStatement.Value = expr
+
+	if p.peekToken.Type == token.Semicolon {
 		p.nextToken()
 	}
 
