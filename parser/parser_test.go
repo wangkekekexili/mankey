@@ -402,6 +402,35 @@ func TestCallExpression(t *testing.T) {
 	}
 }
 
+func TestCallArguments(t *testing.T) {
+	tests := []struct {
+		code         string
+		expArguments []string
+	}{
+		{"print()", nil},
+		{"abs(x)", []string{"x"}},
+		{"minus(b, d)", []string{"b", "d"}},
+	}
+	for _, test := range tests {
+		var expIdentifiers []ast.Expression
+		for _, para := range test.expArguments {
+			expIdentifiers = append(expIdentifiers, &ast.Identifier{Value: para})
+		}
+
+		expressionStat, err := assertOneExpressionStatement(test.code)
+		if err != nil {
+			t.Fatal(err)
+		}
+		call, ok := expressionStat.Value.(*ast.CallExpression)
+		if !ok {
+			t.Fatalf("expect to get a call expression; got %T", expressionStat.Value)
+		}
+		if !reflect.DeepEqual(call.Arguments, expIdentifiers) {
+			t.Fatalf("got arguments %v; want %v", call.Arguments, expIdentifiers)
+		}
+	}
+}
+
 func assertOneExpressionStatement(code string) (*ast.ExpressionStatement, error) {
 	p, err := New(lexer.New(code)).ParseProgram()
 	if err != nil {
