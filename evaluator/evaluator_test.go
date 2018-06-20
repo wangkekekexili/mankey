@@ -28,6 +28,17 @@ func assertIntegerObject(o object.Object, v int64) error {
 	return nil
 }
 
+func assertBoolObject(o object.Object, v bool) error {
+	boolean, ok := o.(*object.boolean)
+	if !ok {
+		return fmt.Errorf("expected to get a boolean object; got %T", o)
+	}
+	if boolean.Value != v {
+		return fmt.Errorf("got boolean value %v; want %v", boolean.Value, v)
+	}
+	return nil
+}
+
 func TestEvalInteger(t *testing.T) {
 	tests := []struct {
 		code   string
@@ -42,6 +53,26 @@ func TestEvalInteger(t *testing.T) {
 			t.Fatal(err)
 		}
 		err = assertIntegerObject(o, test.expInt)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestEvalBoolean(t *testing.T) {
+	tests := []struct {
+		code    string
+		expBool bool
+	}{
+		{"true", true},
+		{"false", false},
+	}
+	for _, test := range tests {
+		o, err := eval(test.code)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = assertBoolObject(o, test.expBool)
 		if err != nil {
 			t.Fatal(err)
 		}

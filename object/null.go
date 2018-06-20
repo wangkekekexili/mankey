@@ -1,13 +1,15 @@
 package object
 
+var Null = &null{}
+
 const ObjNull = "NULL"
 
-type Null struct{}
+type null struct{}
 
-func (n *Null) Type() ObjectType {
+func (n *null) Type() ObjectType {
 	return ObjNull
 }
 
-func (n *Null) String() string {
+func (n *null) String() string {
 	return ObjNull
 }

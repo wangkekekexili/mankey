@@ -9,7 +9,7 @@ func Eval(node ast.Node) (object.Object, error) {
 	switch node := node.(type) {
 	case *ast.Program:
 		if len(node.Statements) == 0 {
-			return &object.Null{}, nil
+			return object.Null, nil
 		}
 		var result object.Object
 		var err error
@@ -24,6 +24,12 @@ func Eval(node ast.Node) (object.Object, error) {
 		return Eval(node.Value)
 	case *ast.Integer:
 		return &object.Integer{Value: node.Value}, nil
+	case *ast.Boolean:
+		if node.Value {
+			return object.True, nil
+		} else {
+			return object.False, nil
+		}
 	default:
 		return nil, nil
 	}

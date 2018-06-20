@@ -2,16 +2,21 @@ package object
 
 import "strconv"
 
+var (
+	True  = &boolean{Value: true}
+	False = &boolean{Value: false}
+)
+
 const ObjBoolean = "BOOLEAN"
 
-type Boolean struct {
+type boolean struct {
 	Value bool
 }
 
-func (b *Boolean) Type() ObjectType {
+func (b *boolean) Type() ObjectType {
 	return ObjBoolean
 }
 
-func (b *Boolean) String() string {
+func (b *boolean) String() string {
 	return strconv.FormatBool(b.Value)
 }
