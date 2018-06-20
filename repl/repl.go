@@ -6,19 +6,17 @@ import (
 	"io"
 
 	"github.com/wangkekekexili/mankey/lexer"
-	"github.com/wangkekekexili/mankey/token"
+	"github.com/wangkekekexili/mankey/parser"
 )
 
 func Do(r io.Reader, w io.Writer) {
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
-		x := lexer.New(scanner.Text())
-		for {
-			t := x.NextToken()
-			if t.Equals(token.New(token.EOF, "")) {
-				break
-			}
-			fmt.Fprintln(w, t)
+		p, err := parser.New(lexer.New(scanner.Text())).ParseProgram()
+		if err != nil {
+			fmt.Fprintln(w, err)
+			continue
 		}
+		fmt.Fprintln(w, p)
 	}
 }
