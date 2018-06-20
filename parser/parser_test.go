@@ -247,6 +247,27 @@ func TestParseOperatorPrecedence(t *testing.T) {
 				},
 			},
 		},
+		{
+			expr: "a + add(b * c) + d",
+			expExpression: &ast.InfixExpression{
+				Left: &ast.InfixExpression{
+					Left: &ast.Identifier{Value: "a"},
+					Op:   "+",
+					Right: &ast.CallExpression{
+						Function: &ast.Identifier{Value: "add"},
+						Arguments: []ast.Expression{
+							&ast.InfixExpression{
+								Left:  &ast.Identifier{Value: "b"},
+								Op:    "*",
+								Right: &ast.Identifier{Value: "c"},
+							},
+						},
+					},
+				},
+				Op:    "+",
+				Right: &ast.Identifier{Value: "d"},
+			},
+		},
 	}
 	for _, test := range tests {
 		gotProgram, err := New(lexer.New(test.expr + ";")).ParseProgram()
@@ -360,6 +381,24 @@ func TestFunctionParameters(t *testing.T) {
 		if !reflect.DeepEqual(function.Parameters, expIdentifiers) {
 			t.Fatalf("got parameters %v; want %v", function.Parameters, expIdentifiers)
 		}
+	}
+}
+
+func TestCallExpression(t *testing.T) {
+	expressionStat, err := assertOneExpressionStatement("add(a, 1+2)")
+	if err != nil {
+		t.Fatal(err)
+	}
+	callExpression, ok := expressionStat.Value.(*ast.CallExpression)
+	if !ok {
+		t.Fatalf("expected to get a call expression; got %T", expressionStat.Value)
+	}
+	err = assertIdentifier(callExpression.Function, "add")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(callExpression.Arguments) != 2 {
+		t.Fatalf("expected to get 2 arguments; got %v", callExpression.Arguments)
 	}
 }
 

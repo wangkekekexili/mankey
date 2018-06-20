@@ -196,3 +196,36 @@ func (p *Parser) parseParameterList() ([]*ast.Identifier, error) {
 
 	return list, nil
 }
+
+func (p *Parser) parseArgumentList() ([]ast.Expression, error) {
+	if p.peekToken.Type == token.RParen {
+		p.nextToken()
+		return nil, nil
+	}
+
+	var list []ast.Expression
+
+	p.nextToken()
+	expr, err := p.parseExpression(Lowest)
+	if err != nil {
+		return nil, err
+	}
+	list = append(list, expr)
+
+	for p.peekToken.Type == token.Comma {
+		p.nextToken()
+		p.nextToken()
+		expr, err = p.parseExpression(Lowest)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, expr)
+	}
+
+	if p.peekToken.Type != token.RParen {
+		return nil, errUnexpectedToken{t: p.peekToken, exp: ")"}
+	}
+	p.nextToken()
+
+	return list, nil
+}

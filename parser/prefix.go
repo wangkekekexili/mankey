@@ -8,7 +8,19 @@ import (
 )
 
 func (p *Parser) parseIdentifier() (ast.Expression, error) {
-	return &ast.Identifier{Value: p.currentToken.Literal}, nil
+	ident := &ast.Identifier{Value: p.currentToken.Literal}
+	if p.peekToken.Type != token.LParen {
+		return ident, nil
+	}
+	p.nextToken()
+	arguments, err := p.parseArgumentList()
+	if err != nil {
+		return nil, err
+	}
+	return &ast.CallExpression{
+		Function:  ident,
+		Arguments: arguments,
+	}, nil
 }
 
 func (p *Parser) parseBoolean() (ast.Expression, error) {

@@ -140,3 +140,16 @@ func (f *Function) String() string {
 	}
 	return fmt.Sprintf("func (%v) %v", strings.Join(paramStrs, ", "), f.Body)
 }
+
+type CallExpression struct {
+	Function  Expression
+	Arguments []Expression
+}
+
+func (c *CallExpression) String() string {
+	arguStrs := make([]string, 0, len(c.Arguments))
+	for _, argu := range c.Arguments {
+		arguStrs = append(arguStrs, argu.String())
+	}
+	return fmt.Sprintf("%v(%v)", c.Function, strings.Join(arguStrs, ", "))
+}
