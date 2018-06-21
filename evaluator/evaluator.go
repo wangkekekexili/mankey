@@ -1,6 +1,7 @@
 package evaluator
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/wangkekekexili/mankey/ast"
@@ -15,6 +16,8 @@ func Eval(node ast.Node) (object.Object, error) {
 		return Eval(node.Value)
 	case *ast.PrefixExpression:
 		return evalPrefixExpression(node)
+	case *ast.InfixExpression:
+		return evalInfixExpression(node)
 	case *ast.Integer:
 		return &object.Integer{Value: node.Value}, nil
 	case *ast.Boolean:
@@ -59,6 +62,66 @@ func evalPrefixExpression(n *ast.PrefixExpression) (object.Object, error) {
 		return &object.Integer{Value: -integer.Value}, nil
 	default:
 		return nil, fmt.Errorf("unknown prefix operator: %v", n.Op)
+	}
+}
+
+func evalInfixExpression(n *ast.InfixExpression) (object.Object, error) {
+	left, err := Eval(n.Left)
+	if err != nil {
+		return nil, err
+	}
+	right, err := Eval(n.Right)
+	if err != nil {
+		return nil, err
+	}
+	switch {
+	case left.Type() == object.ObjInteger && right.Type() == object.ObjInteger:
+		return evalIntegerInfixExpression(n.Op, left.(*object.Integer).Value, right.(*object.Integer).Value)
+	case left.Type() == object.ObjBoolean && right.Type() == object.ObjBoolean:
+		return evalBooleanInfixExpression(n.Op, left.(*object.Boolean).Value, right.(*object.Boolean).Value)
+	default:
+		return nil, fmt.Errorf("unsupported operator %v for operands %v and %v", n.Op, left, right)
+	}
+}
+
+func evalIntegerInfixExpression(op ast.Operator, left, right int64) (object.Object, error) {
+	switch op {
+	case "+":
+		return &object.Integer{Value: left + right}, nil
+	case "-":
+		return &object.Integer{Value: left - right}, nil
+	case "*":
+		return &object.Integer{Value: left * right}, nil
+	case "/":
+		if right == 0 {
+			return nil, errors.New("divide by zero")
+		}
+		return &object.Integer{Value: left / right}, nil
+	case ">":
+		return &object.Boolean{Value: left > right}, nil
+	case ">=":
+		return &object.Boolean{Value: left >= right}, nil
+	case "<":
+		return &object.Boolean{Value: left < right}, nil
+	case "<=":
+		return &object.Boolean{Value: left <= right}, nil
+	case "==":
+		return &object.Boolean{Value: left == right}, nil
+	case "!=":
+		return &object.Boolean{Value: left != right}, nil
+	default:
+		return nil, fmt.Errorf("unexpected operator %v for integer operands", op)
+	}
+}
+
+func evalBooleanInfixExpression(op ast.Operator, left, right bool) (object.Object, error) {
+	switch op {
+	case "==":
+		return &object.Boolean{Value: left == right}, nil
+	case "!=":
+		return &object.Boolean{Value: left != right}, nil
+	default:
+		return nil, fmt.Errorf("unexpected operator %v for boolean operands", op)
 	}
 }
 
