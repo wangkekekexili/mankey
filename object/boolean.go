@@ -3,20 +3,20 @@ package object
 import "strconv"
 
 var (
-	True  = &boolean{Value: true}
-	False = &boolean{Value: false}
+	True  = &Boolean{Value: true}
+	False = &Boolean{Value: false}
 )
 
 const ObjBoolean = "BOOLEAN"
 
-type boolean struct {
+type Boolean struct {
 	Value bool
 }
 
-func (b *boolean) Type() ObjectType {
+func (b *Boolean) Type() ObjectType {
 	return ObjBoolean
 }
 
-func (b *boolean) String() string {
+func (b *Boolean) String() string {
 	return strconv.FormatBool(b.Value)
 }

@@ -29,7 +29,7 @@ func assertIntegerObject(o object.Object, v int64) error {
 }
 
 func assertBoolObject(o object.Object, v bool) error {
-	boolean, ok := o.(*object.boolean)
+	boolean, ok := o.(*object.Boolean)
 	if !ok {
 		return fmt.Errorf("expected to get a boolean object; got %T", o)
 	}
@@ -45,6 +45,9 @@ func TestEvalInteger(t *testing.T) {
 		expInt int64
 	}{
 		{"5", 5},
+		{"-5", -5},
+		{"--5", 5},
+		{"---5", -5},
 		{"42", 42},
 	}
 	for _, test := range tests {
@@ -66,6 +69,10 @@ func TestEvalBoolean(t *testing.T) {
 	}{
 		{"true", true},
 		{"false", false},
+		{"!false", true},
+		{"!!false", false},
+		{"!true", false},
+		{"!!true", true},
 	}
 	for _, test := range tests {
 		o, err := eval(test.code)
