@@ -18,6 +18,8 @@ func Eval(node ast.Node) (object.Object, error) {
 		return evalPrefixExpression(node)
 	case *ast.InfixExpression:
 		return evalInfixExpression(node)
+	case *ast.IfExpression:
+		return evalIfExpression(node)
 	case *ast.Integer:
 		return &object.Integer{Value: node.Value}, nil
 	case *ast.Boolean:
@@ -81,6 +83,26 @@ func evalInfixExpression(n *ast.InfixExpression) (object.Object, error) {
 		return evalBooleanInfixExpression(n.Op, left.(*object.Boolean).Value, right.(*object.Boolean).Value)
 	default:
 		return nil, fmt.Errorf("unsupported operator %v for operands %v and %v", n.Op, left, right)
+	}
+}
+
+func evalIfExpression(ifExpression *ast.IfExpression) (object.Object, error) {
+	cond, err := Eval(ifExpression.Condition)
+	if err != nil {
+		return nil, err
+	}
+	condBool, ok := cond.(*object.Boolean)
+	if !ok {
+		return nil, fmt.Errorf("non-boolean value for the if expression")
+	}
+	if condBool.Value {
+		return evalStatements(ifExpression.Consequence.Statements)
+	} else {
+		if ifExpression.Alternative == nil {
+			return object.Null, nil
+		} else {
+			return evalStatements(ifExpression.Alternative.Statements)
+		}
 	}
 }
 

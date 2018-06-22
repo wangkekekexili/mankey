@@ -39,6 +39,24 @@ func assertBoolObject(o object.Object, v bool) error {
 	return nil
 }
 
+func assertNullIntBool(o object.Object, v interface{}) error {
+	if v == nil {
+		if o == object.Null {
+			return nil
+		} else {
+			return fmt.Errorf("expected to get null; got %v", o)
+		}
+	}
+	switch v := v.(type) {
+	case int:
+		return assertIntegerObject(o, int64(v))
+	case bool:
+		return assertBoolObject(o, v)
+	default:
+		return fmt.Errorf("bug in test: unexpected type %T", v)
+	}
+}
+
 func TestEvalInteger(t *testing.T) {
 	tests := []struct {
 		code   string
@@ -108,6 +126,30 @@ func TestEvalBoolean(t *testing.T) {
 			t.Fatal(err)
 		}
 		err = assertBoolObject(o, test.expBool)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestEvalIfElseExpression(t *testing.T) {
+	tests := []struct {
+		code string
+		exp  interface{}
+	}{
+		{"if (true) { 10 }", 10},
+		{"if (false) { 10; }", nil},
+		{"if (1 < 2) { 10; }", 10},
+		{"if (1 > 2) { 10 }", nil},
+		{"if (1 > 2) { true } else { false }", false},
+		{"if (1 < 2) { true } else { false }", true},
+	}
+	for _, test := range tests {
+		o, err := eval(test.code)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = assertNullIntBool(o, test.exp)
 		if err != nil {
 			t.Fatal(err)
 		}
