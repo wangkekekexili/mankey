@@ -165,6 +165,17 @@ func TestReturnStatements(t *testing.T) {
 		{"return 10; 9;", 10},
 		{"return 2 * 5; 9;", 10},
 		{"9; return 2 * 5; 9;", 10},
+		{
+			code: `
+if (true) {
+  if (true) {
+    return 42;
+  }
+}
+return 10;
+`,
+			expInt: 42,
+		},
 	}
 	for _, test := range tests {
 		o, err := eval(test.code)

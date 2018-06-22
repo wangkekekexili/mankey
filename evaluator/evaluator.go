@@ -11,7 +11,9 @@ import (
 func Eval(node ast.Node) (object.Object, error) {
 	switch node := node.(type) {
 	case *ast.Program:
-		return evalStatements(node.Statements)
+		return evalProgram(node)
+	case *ast.BlockStatement:
+		return evalBlockStatement(node)
 	case *ast.ReturnStatement:
 		return evalReturnStatement(node)
 	case *ast.ExpressionStatement:
@@ -27,17 +29,17 @@ func Eval(node ast.Node) (object.Object, error) {
 	case *ast.Boolean:
 		return evalBoolean(node.Value), nil
 	default:
-		return nil, nil
+		return nil, fmt.Errorf("cannot evaluate %T", node)
 	}
 }
 
-func evalStatements(stats []ast.Statement) (object.Object, error) {
-	if len(stats) == 0 {
+func evalProgram(node *ast.Program) (object.Object, error) {
+	if len(node.Statements) == 0 {
 		return object.Null, nil
 	}
 	var result object.Object
 	var err error
-	for _, stat := range stats {
+	for _, stat := range node.Statements {
 		result, err = Eval(stat)
 		if err != nil {
 			return nil, err
@@ -45,6 +47,24 @@ func evalStatements(stats []ast.Statement) (object.Object, error) {
 		returnValue, ok := result.(*object.ReturnValue)
 		if ok {
 			return returnValue.Value, nil
+		}
+	}
+	return result, nil
+}
+
+func evalBlockStatement(block *ast.BlockStatement) (object.Object, error) {
+	if len(block.Statements) == 0 {
+		return object.Null, nil
+	}
+	var result object.Object
+	var err error
+	for _, stat := range block.Statements {
+		result, err = Eval(stat)
+		if err != nil {
+			return nil, err
+		}
+		if result.Type() == object.ObjReturnValue {
+			return result, nil
 		}
 	}
 	return result, nil
@@ -110,12 +130,12 @@ func evalIfExpression(ifExpression *ast.IfExpression) (object.Object, error) {
 		return nil, fmt.Errorf("non-boolean value for the if expression")
 	}
 	if condBool.Value {
-		return evalStatements(ifExpression.Consequence.Statements)
+		return evalBlockStatement(ifExpression.Consequence)
 	} else {
 		if ifExpression.Alternative == nil {
 			return object.Null, nil
 		} else {
-			return evalStatements(ifExpression.Alternative.Statements)
+			return evalBlockStatement(ifExpression.Alternative)
 		}
 	}
 }
