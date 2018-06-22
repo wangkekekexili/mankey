@@ -188,3 +188,18 @@ return 10;
 		}
 	}
 }
+
+func TestError(t *testing.T) {
+	codes := []string{
+		"!10",
+		"-true",
+		"true + false",
+		"if (1) {1}",
+	}
+	for _, code := range codes {
+		_, err := eval(code)
+		if err == nil {
+			t.Fatal("error expected")
+		}
+	}
+}
