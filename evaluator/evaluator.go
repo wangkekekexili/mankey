@@ -12,6 +12,8 @@ func Eval(node ast.Node) (object.Object, error) {
 	switch node := node.(type) {
 	case *ast.Program:
 		return evalStatements(node.Statements)
+	case *ast.ReturnStatement:
+		return evalReturnStatement(node)
 	case *ast.ExpressionStatement:
 		return Eval(node.Value)
 	case *ast.PrefixExpression:
@@ -40,8 +42,20 @@ func evalStatements(stats []ast.Statement) (object.Object, error) {
 		if err != nil {
 			return nil, err
 		}
+		returnValue, ok := result.(*object.ReturnValue)
+		if ok {
+			return returnValue.Value, nil
+		}
 	}
 	return result, nil
+}
+
+func evalReturnStatement(node *ast.ReturnStatement) (object.Object, error) {
+	o, err := Eval(node.Value)
+	if err != nil {
+		return nil, err
+	}
+	return &object.ReturnValue{Value: o}, nil
 }
 
 func evalPrefixExpression(n *ast.PrefixExpression) (object.Object, error) {
