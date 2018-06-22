@@ -14,7 +14,7 @@ func eval(code string) (object.Object, error) {
 	if err != nil {
 		return nil, err
 	}
-	return Eval(program)
+	return Eval(program, object.NewEnvironment())
 }
 
 func assertIntegerObject(o object.Object, v int64) error {
@@ -189,12 +189,34 @@ return 10;
 	}
 }
 
+func TestEvalVarStatement(t *testing.T) {
+	tests := []struct {
+		code   string
+		expInt int64
+	}{
+		{"var n = 42;", 42},
+		{"var n = 42; n+1", 43},
+		{"var n = 42; var m = n - 2; m", 40},
+	}
+	for _, test := range tests {
+		o, err := eval(test.code)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = assertIntegerObject(o, test.expInt)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
 func TestError(t *testing.T) {
 	codes := []string{
 		"!10",
 		"-true",
 		"true + false",
 		"if (1) {1}",
+		"foobar",
 	}
 	for _, code := range codes {
 		_, err := eval(code)

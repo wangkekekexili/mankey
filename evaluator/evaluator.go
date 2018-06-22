@@ -8,22 +8,26 @@ import (
 	"github.com/wangkekekexili/mankey/object"
 )
 
-func Eval(node ast.Node) (object.Object, error) {
+func Eval(node ast.Node, env *object.Environment) (object.Object, error) {
 	switch node := node.(type) {
 	case *ast.Program:
-		return evalProgram(node)
+		return evalProgram(node, env)
 	case *ast.BlockStatement:
-		return evalBlockStatement(node)
+		return evalBlockStatement(node, env)
+	case *ast.VarStatement:
+		return evalVarStatement(node, env)
 	case *ast.ReturnStatement:
-		return evalReturnStatement(node)
+		return evalReturnStatement(node, env)
 	case *ast.ExpressionStatement:
-		return Eval(node.Value)
+		return Eval(node.Value, env)
 	case *ast.PrefixExpression:
-		return evalPrefixExpression(node)
+		return evalPrefixExpression(node, env)
 	case *ast.InfixExpression:
-		return evalInfixExpression(node)
+		return evalInfixExpression(node, env)
 	case *ast.IfExpression:
-		return evalIfExpression(node)
+		return evalIfExpression(node, env)
+	case *ast.Identifier:
+		return evalIdentifier(node, env)
 	case *ast.Integer:
 		return &object.Integer{Value: node.Value}, nil
 	case *ast.Boolean:
@@ -33,14 +37,14 @@ func Eval(node ast.Node) (object.Object, error) {
 	}
 }
 
-func evalProgram(node *ast.Program) (object.Object, error) {
+func evalProgram(node *ast.Program, env *object.Environment) (object.Object, error) {
 	if len(node.Statements) == 0 {
 		return object.Null, nil
 	}
 	var result object.Object
 	var err error
 	for _, stat := range node.Statements {
-		result, err = Eval(stat)
+		result, err = Eval(stat, env)
 		if err != nil {
 			return nil, err
 		}
@@ -52,14 +56,14 @@ func evalProgram(node *ast.Program) (object.Object, error) {
 	return result, nil
 }
 
-func evalBlockStatement(block *ast.BlockStatement) (object.Object, error) {
+func evalBlockStatement(block *ast.BlockStatement, env *object.Environment) (object.Object, error) {
 	if len(block.Statements) == 0 {
 		return object.Null, nil
 	}
 	var result object.Object
 	var err error
 	for _, stat := range block.Statements {
-		result, err = Eval(stat)
+		result, err = Eval(stat, env)
 		if err != nil {
 			return nil, err
 		}
@@ -70,16 +74,25 @@ func evalBlockStatement(block *ast.BlockStatement) (object.Object, error) {
 	return result, nil
 }
 
-func evalReturnStatement(node *ast.ReturnStatement) (object.Object, error) {
-	o, err := Eval(node.Value)
+func evalVarStatement(node *ast.VarStatement, env *object.Environment) (object.Object, error) {
+	o, err := Eval(node.Value, env)
+	if err != nil {
+		return nil, err
+	}
+	env.Set(node.Name.Value, o)
+	return o, nil
+}
+
+func evalReturnStatement(node *ast.ReturnStatement, env *object.Environment) (object.Object, error) {
+	o, err := Eval(node.Value, env)
 	if err != nil {
 		return nil, err
 	}
 	return &object.ReturnValue{Value: o}, nil
 }
 
-func evalPrefixExpression(n *ast.PrefixExpression) (object.Object, error) {
-	value, err := Eval(n.Value)
+func evalPrefixExpression(n *ast.PrefixExpression, env *object.Environment) (object.Object, error) {
+	value, err := Eval(n.Value, env)
 	if err != nil {
 		return nil, err
 	}
@@ -101,12 +114,12 @@ func evalPrefixExpression(n *ast.PrefixExpression) (object.Object, error) {
 	}
 }
 
-func evalInfixExpression(n *ast.InfixExpression) (object.Object, error) {
-	left, err := Eval(n.Left)
+func evalInfixExpression(n *ast.InfixExpression, env *object.Environment) (object.Object, error) {
+	left, err := Eval(n.Left, env)
 	if err != nil {
 		return nil, err
 	}
-	right, err := Eval(n.Right)
+	right, err := Eval(n.Right, env)
 	if err != nil {
 		return nil, err
 	}
@@ -120,8 +133,8 @@ func evalInfixExpression(n *ast.InfixExpression) (object.Object, error) {
 	}
 }
 
-func evalIfExpression(ifExpression *ast.IfExpression) (object.Object, error) {
-	cond, err := Eval(ifExpression.Condition)
+func evalIfExpression(ifExpression *ast.IfExpression, env *object.Environment) (object.Object, error) {
+	cond, err := Eval(ifExpression.Condition, env)
 	if err != nil {
 		return nil, err
 	}
@@ -130,12 +143,12 @@ func evalIfExpression(ifExpression *ast.IfExpression) (object.Object, error) {
 		return nil, fmt.Errorf("non-boolean value for the if expression")
 	}
 	if condBool.Value {
-		return evalBlockStatement(ifExpression.Consequence)
+		return evalBlockStatement(ifExpression.Consequence, env)
 	} else {
 		if ifExpression.Alternative == nil {
 			return object.Null, nil
 		} else {
-			return evalBlockStatement(ifExpression.Alternative)
+			return evalBlockStatement(ifExpression.Alternative, env)
 		}
 	}
 }
@@ -187,4 +200,12 @@ func evalBoolean(v bool) object.Object {
 	} else {
 		return object.False
 	}
+}
+
+func evalIdentifier(node *ast.Identifier, env *object.Environment) (object.Object, error) {
+	o, ok := env.Get(node.Value)
+	if !ok {
+		return nil, fmt.Errorf("undefined identifier %v", node.Value)
+	}
+	return o, nil
 }
