@@ -210,6 +210,23 @@ func TestEvalVarStatement(t *testing.T) {
 	}
 }
 
+func TestEvalFunction(t *testing.T) {
+	o, err := eval("func(a) {return a;}")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fn, ok := o.(*object.Function)
+	if !ok {
+		t.Fatalf("expected to get a function object; got %T", o)
+	}
+	if len(fn.Parameters) != 1 {
+		t.Fatalf("expected to get 1 parameter; got %v", fn.Parameters)
+	}
+	if len(fn.Body.Statements) != 1 {
+		t.Fatalf("expected to get 1 statement in the body; got %v", fn.Body)
+	}
+}
+
 func TestError(t *testing.T) {
 	codes := []string{
 		"!10",

@@ -26,6 +26,8 @@ func Eval(node ast.Node, env *object.Environment) (object.Object, error) {
 		return evalInfixExpression(node, env)
 	case *ast.IfExpression:
 		return evalIfExpression(node, env)
+	case *ast.Function:
+		return evalFunction(node, env), nil
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
 	case *ast.Integer:
@@ -150,6 +152,14 @@ func evalIfExpression(ifExpression *ast.IfExpression, env *object.Environment) (
 		} else {
 			return evalBlockStatement(ifExpression.Alternative, env)
 		}
+	}
+}
+
+func evalFunction(fn *ast.Function, env *object.Environment) object.Object {
+	return &object.Function{
+		Parameters: fn.Parameters,
+		Body:       fn.Body,
+		Env:        env,
 	}
 }
 
