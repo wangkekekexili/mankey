@@ -187,7 +187,18 @@ func evalCallExpression(call *ast.CallExpression, env *object.Environment) (obje
 		enclosedEnv.Set(function.Parameters[i].Value, exprs[i])
 	}
 
-	return evalBlockStatement(function.Body, enclosedEnv)
+	return unwrapReturnObject(evalBlockStatement(function.Body, enclosedEnv))
+}
+
+func unwrapReturnObject(o object.Object, err error) (object.Object, error) {
+	if err != nil {
+		return nil, err
+	}
+	returnObj, ok := o.(*object.ReturnValue)
+	if ok {
+		o = returnObj.Value
+	}
+	return o, nil
 }
 
 func evalExpressions(exprs []ast.Expression, env *object.Environment) ([]object.Object, error) {
