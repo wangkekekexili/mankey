@@ -227,6 +227,27 @@ func TestEvalFunction(t *testing.T) {
 	}
 }
 
+func TestCallExpression(t *testing.T) {
+	tests := []struct {
+		code   string
+		expInt int64
+	}{
+		{"var fn = func(x) {return x;};fn(42)", 42},
+		{"var double = func(x) { x * 2; }; double(5);", 10},
+		{"var add = func(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
+	}
+	for _, test := range tests {
+		o, err := eval(test.code)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = assertIntegerObject(o, test.expInt)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
 func TestError(t *testing.T) {
 	codes := []string{
 		"!10",

@@ -28,6 +28,8 @@ func Eval(node ast.Node, env *object.Environment) (object.Object, error) {
 		return evalIfExpression(node, env)
 	case *ast.Function:
 		return evalFunction(node, env), nil
+	case *ast.CallExpression:
+		return evalCallExpression(node, env)
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
 	case *ast.Integer:
@@ -161,6 +163,43 @@ func evalFunction(fn *ast.Function, env *object.Environment) object.Object {
 		Body:       fn.Body,
 		Env:        env,
 	}
+}
+
+func evalCallExpression(call *ast.CallExpression, env *object.Environment) (object.Object, error) {
+	functionObj, err := Eval(call.Function, env)
+	if err != nil {
+		return nil, err
+	}
+	function, ok := functionObj.(*object.Function)
+	if !ok {
+		return nil, fmt.Errorf("expected to get a function object; got %T", functionObj)
+	}
+	if len(function.Parameters) != len(call.Arguments) {
+		return nil, fmt.Errorf("function expects %v parameter; %v provided", len(function.Parameters), len(call.Arguments))
+	}
+
+	exprs, err := evalExpressions(call.Arguments, env)
+	if err != nil {
+		return nil, err
+	}
+	enclosedEnv := object.NewEnclosedEnvironment(function.Env)
+	for i := range function.Parameters {
+		enclosedEnv.Set(function.Parameters[i].Value, exprs[i])
+	}
+
+	return evalBlockStatement(function.Body, enclosedEnv)
+}
+
+func evalExpressions(exprs []ast.Expression, env *object.Environment) ([]object.Object, error) {
+	var result []object.Object
+	for _, expr := range exprs {
+		o, err := Eval(expr, env)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, o)
+	}
+	return result, nil
 }
 
 func evalIntegerInfixExpression(op ast.Operator, left, right int64) (object.Object, error) {
