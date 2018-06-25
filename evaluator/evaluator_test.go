@@ -263,3 +263,17 @@ func TestError(t *testing.T) {
 		}
 	}
 }
+
+func TestClosures(t *testing.T) {
+	code := `
+var newAdder = func(x) {
+	func(y) { x + y };
+};
+var addTwo = newAdder(2);
+addTwo(9);`
+	o, err := eval(code)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertIntegerObject(o, 11)
+}
