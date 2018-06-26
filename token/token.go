@@ -10,6 +10,7 @@ const (
 
 	Ident  = "IDENTIFIER"
 	Number = "NUMBER"
+	String = "STRING"
 
 	Assign   = "="
 	Add      = "+"

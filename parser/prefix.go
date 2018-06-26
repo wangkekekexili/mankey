@@ -39,6 +39,10 @@ func (p *Parser) parseInteger() (ast.Expression, error) {
 	return &ast.Integer{Value: v}, nil
 }
 
+func (p *Parser) parseString() (ast.Expression, error) {
+	return &ast.String{Value: p.currentToken.Literal}, nil
+}
+
 func (p *Parser) parsePrefixExpression() (ast.Expression, error) {
 	prefixExpression := &ast.PrefixExpression{Op: ast.Operator(p.currentToken.Literal)}
 	p.nextToken()

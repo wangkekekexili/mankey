@@ -57,6 +57,16 @@ func TestNextToken(t *testing.T) {
 			},
 		},
 		{
+			input: `var name = "ke";`,
+			expTokens: []*token.Token{
+				token.New(token.Var, "var"),
+				token.New(token.Ident, "name"),
+				token.New(token.Assign, "="),
+				token.New(token.String, "ke"),
+				token.New(token.Semicolon, ";"),
+			},
+		},
+		{
 			input: `var five = 5;
 var ten = 10;
 !-/*5;

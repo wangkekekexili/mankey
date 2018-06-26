@@ -39,6 +39,17 @@ func assertBoolObject(o object.Object, v bool) error {
 	return nil
 }
 
+func assertStringObject(o object.Object, v string) error {
+	str, ok := o.(*object.String)
+	if !ok {
+		return fmt.Errorf("expected to get a string object; got %T", o)
+	}
+	if str.Value != v {
+		return fmt.Errorf("got string value %v; want %v", str.Value, v)
+	}
+	return nil
+}
+
 func assertNullIntBool(o object.Object, v interface{}) error {
 	if v == nil {
 		if o == object.Null {
@@ -126,6 +137,26 @@ func TestEvalBoolean(t *testing.T) {
 			t.Fatal(err)
 		}
 		err = assertBoolObject(o, test.expBool)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestEvalString(t *testing.T) {
+	tests := []struct {
+		code   string
+		expStr string
+	}{
+		{`"hello"`, "hello"},
+		{`"hello" + " " + "world"`, "hello world"},
+	}
+	for _, test := range tests {
+		o, err := eval(test.code)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = assertStringObject(o, test.expStr)
 		if err != nil {
 			t.Fatal(err)
 		}

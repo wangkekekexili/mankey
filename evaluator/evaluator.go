@@ -36,6 +36,8 @@ func Eval(node ast.Node, env *object.Environment) (object.Object, error) {
 		return &object.Integer{Value: node.Value}, nil
 	case *ast.Boolean:
 		return evalBoolean(node.Value), nil
+	case *ast.String:
+		return &object.String{Value: node.Value}, nil
 	default:
 		return nil, fmt.Errorf("cannot evaluate %T", node)
 	}
@@ -132,6 +134,8 @@ func evalInfixExpression(n *ast.InfixExpression, env *object.Environment) (objec
 		return evalIntegerInfixExpression(n.Op, left.(*object.Integer).Value, right.(*object.Integer).Value)
 	case left.Type() == object.ObjBoolean && right.Type() == object.ObjBoolean:
 		return evalBooleanInfixExpression(n.Op, left.(*object.Boolean).Value, right.(*object.Boolean).Value)
+	case left.Type() == object.ObjString && right.Type() == object.ObjString:
+		return evalStringInfixExpression(n.Op, left.(*object.String).Value, right.(*object.String).Value)
 	default:
 		return nil, fmt.Errorf("unsupported operator %v for operands %v and %v", n.Op, left, right)
 	}
@@ -251,6 +255,14 @@ func evalBooleanInfixExpression(op ast.Operator, left, right bool) (object.Objec
 		return &object.Boolean{Value: left != right}, nil
 	default:
 		return nil, fmt.Errorf("unexpected operator %v for boolean operands", op)
+	}
+}
+
+func evalStringInfixExpression(op ast.Operator, left, right string) (object.Object, error) {
+	if op == "+" {
+		return &object.String{Value: left + right}, nil
+	} else {
+		return nil, fmt.Errorf("unexpected operator %v for string operands", op)
 	}
 }
 

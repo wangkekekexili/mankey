@@ -93,6 +93,14 @@ func (s *Integer) String() string {
 	return strconv.FormatInt(s.Value, 10)
 }
 
+type String struct {
+	Value string
+}
+
+func (s *String) String() string {
+	return s.Value
+}
+
 type Operator string
 
 type PrefixExpression struct {

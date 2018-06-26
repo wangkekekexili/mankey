@@ -87,6 +87,24 @@ func (r *Lexer) mustCurrentNumber() string {
 	}
 }
 
+func (r *Lexer) mustCurrentString() string {
+	// start points to the starting quote.
+	start := r.pos
+
+	for {
+		r.advance()
+		ch, ok := r.currentChar()
+		if !ok {
+			panic("unfinishing string")
+		}
+		if ch == '"' {
+			break
+		}
+	}
+
+	return r.input[start+1 : r.pos]
+}
+
 func (r *Lexer) skipWhitespace() {
 	for {
 		b, ok := r.peekNextChar()
@@ -109,6 +127,8 @@ func (r *Lexer) NextToken() *token.Token {
 		return token.New(token.EOF, "")
 	}
 	switch b {
+	case '"':
+		return token.New(token.String, r.mustCurrentString())
 	case '=':
 		n, ok := r.peekNextChar()
 		if ok && n == '=' {

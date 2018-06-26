@@ -99,6 +99,21 @@ func TestIntegerLiteralExpression(t *testing.T) {
 	}
 }
 
+func TestStringLiteralExpression(t *testing.T) {
+	code := `"hello world";`
+	expressionStat, err := assertOneExpressionStatement(code)
+	if err != nil {
+		t.Fatal(err)
+	}
+	str, ok := expressionStat.Value.(*ast.String)
+	if !ok {
+		t.Fatalf("expected to get a string; got %T", expressionStat.Value)
+	}
+	if str.Value != "hello world" {
+		t.Fatalf("expected to get string '%v'; got %v", "hello world", str.Value)
+	}
+}
+
 func TestPrefixExpression(t *testing.T) {
 	tests := []struct {
 		code     string
