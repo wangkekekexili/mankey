@@ -174,24 +174,26 @@ func evalCallExpression(call *ast.CallExpression, env *object.Environment) (obje
 	if err != nil {
 		return nil, err
 	}
-	function, ok := functionObj.(*object.Function)
-	if !ok {
-		return nil, fmt.Errorf("expected to get a function object; got %T", functionObj)
-	}
-	if len(function.Parameters) != len(call.Arguments) {
-		return nil, fmt.Errorf("function expects %v parameter; %v provided", len(function.Parameters), len(call.Arguments))
-	}
-
 	exprs, err := evalExpressions(call.Arguments, env)
 	if err != nil {
 		return nil, err
 	}
-	enclosedEnv := object.NewEnclosedEnvironment(function.Env)
-	for i := range function.Parameters {
-		enclosedEnv.Set(function.Parameters[i].Value, exprs[i])
-	}
 
-	return unwrapReturnObject(evalBlockStatement(function.Body, enclosedEnv))
+	switch functionObj := functionObj.(type) {
+	case *object.Function:
+		if len(functionObj.Parameters) != len(call.Arguments) {
+			return nil, fmt.Errorf("function expects %v parameter; %v provided", len(functionObj.Parameters), len(call.Arguments))
+		}
+		enclosedEnv := object.NewEnclosedEnvironment(functionObj.Env)
+		for i := range functionObj.Parameters {
+			enclosedEnv.Set(functionObj.Parameters[i].Value, exprs[i])
+		}
+		return unwrapReturnObject(evalBlockStatement(functionObj.Body, enclosedEnv))
+	case *object.Builtin:
+		return functionObj.Fn(exprs...), nil
+	default:
+		return nil, fmt.Errorf("unknown type of function %T", functionObj)
+	}
 }
 
 func unwrapReturnObject(o object.Object, err error) (object.Object, error) {
@@ -276,8 +278,12 @@ func evalBoolean(v bool) object.Object {
 
 func evalIdentifier(node *ast.Identifier, env *object.Environment) (object.Object, error) {
 	o, ok := env.Get(node.Value)
-	if !ok {
-		return nil, fmt.Errorf("undefined identifier %v", node.Value)
+	if ok {
+		return o, nil
 	}
-	return o, nil
+	o, ok = builtins[node.Value]
+	if ok {
+		return o, nil
+	}
+	return nil, fmt.Errorf("undefined identifier %v", node.Value)
 }

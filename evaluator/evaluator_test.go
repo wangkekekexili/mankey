@@ -308,3 +308,25 @@ addTwo(9);`
 	}
 	assertIntegerObject(o, 11)
 }
+
+func TestBuiltinLen(t *testing.T) {
+	tests := []struct {
+		code   string
+		expInt int64
+	}{
+		{`len("")`, 0},
+		{`len("42")`, 2},
+		{`len("hello world")`, 11},
+		{`var a = "ke"; len(a)`, 2},
+	}
+	for _, test := range tests {
+		o, err := eval(test.code)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = assertIntegerObject(o, test.expInt)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
