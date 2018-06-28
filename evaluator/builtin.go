@@ -8,11 +8,14 @@ var builtins = map[string]*object.Builtin{
 			if len(args) != 1 {
 				panic("len accept one argument")
 			}
-			str, ok := args[0].(*object.String)
-			if !ok {
-				panic("string expected for len")
+			switch e := args[0].(type) {
+			case *object.String:
+				return &object.Integer{Value: int64(len(e.Value))}
+			case *object.Array:
+				return &object.Integer{Value: int64(len(e.Elements))}
+			default:
+				panic("unexpected object for len")
 			}
-			return &object.Integer{Value: int64(len(str.Value))}
 		},
 	},
 }
