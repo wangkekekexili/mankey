@@ -1,6 +1,8 @@
 package evaluator
 
-import "github.com/wangkekekexili/mankey/object"
+import (
+	"github.com/wangkekekexili/mankey/object"
+)
 
 var builtins = map[string]*object.Builtin{
 	"len": {
@@ -16,6 +18,25 @@ var builtins = map[string]*object.Builtin{
 			default:
 				panic("unexpected object for len")
 			}
+		},
+	},
+	"push": {
+		Fn: func(args ...object.Object) object.Object {
+			if len(args) <= 1 {
+				panic("push accepts at least 2 arguments")
+			}
+			arr, ok := args[0].(*object.Array)
+			if !ok {
+				panic("the first argument for push must be an array")
+			}
+			newArr := &object.Array{
+				Elements: make([]object.Object, 0, len(arr.Elements)+len(args)-1),
+			}
+			for _, e := range arr.Elements {
+				newArr.Elements = append(newArr.Elements, e)
+			}
+			newArr.Elements = append(newArr.Elements, args[1:]...)
+			return newArr
 		},
 	},
 }
