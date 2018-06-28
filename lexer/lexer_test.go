@@ -142,6 +142,16 @@ if (5 < 10) {
 				token.New(token.RBracket, "]"),
 			},
 		},
+		{
+			input: `{name: "ke"}`,
+			expTokens: []*token.Token{
+				token.New(token.LBrace, "{"),
+				token.New(token.Ident, "name"),
+				token.New(token.Colon, ":"),
+				token.New(token.String, "ke"),
+				token.New(token.RBrace, "}"),
+			},
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.input, func(t *testing.T) {

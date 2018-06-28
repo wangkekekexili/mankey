@@ -28,6 +28,7 @@ const (
 	Gte = ">="
 
 	Comma     = ","
+	Colon     = ":"
 	Semicolon = ";"
 
 	LParen   = "("

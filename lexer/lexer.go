@@ -171,6 +171,8 @@ func (r *Lexer) NextToken() *token.Token {
 		return token.New(token.Multiply, "*")
 	case ',':
 		return token.New(token.Comma, ",")
+	case ':':
+		return token.New(token.Colon, ":")
 	case ';':
 		return token.New(token.Semicolon, ";")
 	case '(':
