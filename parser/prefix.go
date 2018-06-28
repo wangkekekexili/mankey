@@ -13,7 +13,7 @@ func (p *Parser) parseIdentifier() (ast.Expression, error) {
 		return ident, nil
 	}
 	p.nextToken()
-	arguments, err := p.parseArgumentList()
+	arguments, err := p.parseExpressionList(token.RParen)
 	if err != nil {
 		return nil, err
 	}
@@ -134,4 +134,16 @@ func (p *Parser) parseFunction() (ast.Expression, error) {
 	}
 
 	return function, nil
+}
+
+func (p *Parser) parseArray() (ast.Expression, error) {
+	arr := &ast.Array{}
+
+	list, err := p.parseExpressionList(token.RBracket)
+	if err != nil {
+		return nil, err
+	}
+	arr.Elements = list
+
+	return arr, nil
 }

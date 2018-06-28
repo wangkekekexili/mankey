@@ -21,16 +21,17 @@ func New(r *lexer.Lexer) *Parser {
 		r: r,
 	}
 	p.prefixParseFnMap = map[token.TokenType]prefixParseFn{
-		token.Ident:  p.parseIdentifier,
-		token.Number: p.parseInteger,
-		token.String: p.parseString,
-		token.Minus:  p.parsePrefixExpression,
-		token.Not:    p.parsePrefixExpression,
-		token.True:   p.parseBoolean,
-		token.False:  p.parseBoolean,
-		token.LParen: p.parseGroupedExpression,
-		token.If:     p.parseIfExpression,
-		token.Func:   p.parseFunction,
+		token.Ident:    p.parseIdentifier,
+		token.Number:   p.parseInteger,
+		token.String:   p.parseString,
+		token.Minus:    p.parsePrefixExpression,
+		token.Not:      p.parsePrefixExpression,
+		token.True:     p.parseBoolean,
+		token.False:    p.parseBoolean,
+		token.LParen:   p.parseGroupedExpression,
+		token.LBracket: p.parseArray,
+		token.If:       p.parseIfExpression,
+		token.Func:     p.parseFunction,
 	}
 	p.infixParseFnMap = map[token.TokenType]infixParseFn{
 		token.Equal:    p.parseInfixExpression,
@@ -43,6 +44,7 @@ func New(r *lexer.Lexer) *Parser {
 		token.Minus:    p.parseInfixExpression,
 		token.Multiply: p.parseInfixExpression,
 		token.Divide:   p.parseInfixExpression,
+		token.LBracket: p.parseIndexExpression,
 	}
 
 	p.nextToken()
@@ -210,8 +212,8 @@ func (p *Parser) parseParameterList() ([]*ast.Identifier, error) {
 	return list, nil
 }
 
-func (p *Parser) parseArgumentList() ([]ast.Expression, error) {
-	if p.peekToken.Type == token.RParen {
+func (p *Parser) parseExpressionList(end token.TokenType) ([]ast.Expression, error) {
+	if p.peekToken.Type == end {
 		p.nextToken()
 		return nil, nil
 	}
@@ -235,8 +237,8 @@ func (p *Parser) parseArgumentList() ([]ast.Expression, error) {
 		list = append(list, expr)
 	}
 
-	if p.peekToken.Type != token.RParen {
-		return nil, errUnexpectedToken{t: p.peekToken, exp: ")"}
+	if p.peekToken.Type != end {
+		return nil, errUnexpectedToken{t: p.peekToken, exp: string(end)}
 	}
 	p.nextToken()
 

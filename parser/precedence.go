@@ -12,6 +12,7 @@ const (
 	Multi
 	Prefix
 	Call
+	Index
 )
 
 var precedences = map[token.TokenType]precedence{
@@ -25,6 +26,7 @@ var precedences = map[token.TokenType]precedence{
 	token.Minus:    Add,
 	token.Multiply: Multi,
 	token.Divide:   Multi,
+	token.LBracket: Index,
 }
 
 func (p *Parser) currentPrecedence() precedence {

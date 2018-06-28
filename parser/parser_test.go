@@ -283,6 +283,21 @@ func TestParseOperatorPrecedence(t *testing.T) {
 				Right: &ast.Identifier{Value: "d"},
 			},
 		},
+		{
+			expr: "a * b[2*1]",
+			expExpression: &ast.InfixExpression{
+				Left: &ast.Identifier{Value: "a"},
+				Op:   "*",
+				Right: &ast.IndexExpression{
+					Left: &ast.Identifier{Value: "b"},
+					Index: &ast.InfixExpression{
+						Left:  &ast.Integer{Value: 2},
+						Op:    "*",
+						Right: &ast.Integer{Value: 1},
+					},
+				},
+			},
+		},
 	}
 	for _, test := range tests {
 		gotProgram, err := New(lexer.New(test.expr + ";")).ParseProgram()
@@ -443,6 +458,41 @@ func TestCallArguments(t *testing.T) {
 		if !reflect.DeepEqual(call.Arguments, expIdentifiers) {
 			t.Fatalf("got arguments %v; want %v", call.Arguments, expIdentifiers)
 		}
+	}
+}
+
+func TestArray(t *testing.T) {
+	code := `[1, "hello", 42];`
+	expressionStat, err := assertOneExpressionStatement(code)
+	if err != nil {
+		t.Fatal(err)
+	}
+	arr, ok := expressionStat.Value.(*ast.Array)
+	if !ok {
+		t.Fatalf("expected to get an array; got %T", expressionStat.Value)
+	}
+	if len(arr.Elements) != 3 {
+		t.Fatalf("expected to get 3 elements in the array; got %v", arr.Elements)
+	}
+}
+
+func TestIndex(t *testing.T) {
+	code := `arr[3];`
+	expressionStat, err := assertOneExpressionStatement(code)
+	if err != nil {
+		t.Fatal(err)
+	}
+	index, ok := expressionStat.Value.(*ast.IndexExpression)
+	if !ok {
+		t.Fatalf("expected to get an index expression; got %T", expressionStat.Value)
+	}
+	err = assertIdentifier(index.Left, "arr")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = assertIntegerLiteral(index.Index, 3)
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 

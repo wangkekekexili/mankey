@@ -38,6 +38,10 @@ func Eval(node ast.Node, env *object.Environment) (object.Object, error) {
 		return evalBoolean(node.Value), nil
 	case *ast.String:
 		return &object.String{Value: node.Value}, nil
+	case *ast.Array:
+		return evalArray(node, env)
+	case *ast.IndexExpression:
+		return evalIndex(node, env)
 	default:
 		return nil, fmt.Errorf("cannot evaluate %T", node)
 	}
@@ -286,4 +290,41 @@ func evalIdentifier(node *ast.Identifier, env *object.Environment) (object.Objec
 		return o, nil
 	}
 	return nil, fmt.Errorf("undefined identifier %v", node.Value)
+}
+
+func evalArray(node *ast.Array, env *object.Environment) (object.Object, error) {
+	arr := &object.Array{}
+	for _, e := range node.Elements {
+		o, err := Eval(e, env)
+		if err != nil {
+			return nil, err
+		}
+		arr.Elements = append(arr.Elements, o)
+	}
+	return arr, nil
+}
+
+func evalIndex(node *ast.IndexExpression, env *object.Environment) (object.Object, error) {
+	o, err := Eval(node.Left, env)
+	if err != nil {
+		return nil, err
+	}
+	arr, ok := o.(*object.Array)
+	if !ok {
+		return nil, fmt.Errorf("index operation on non array object %T", o)
+	}
+
+	o, err = Eval(node.Index, env)
+	if err != nil {
+		return nil, err
+	}
+	i, ok := o.(*object.Integer)
+	if !ok {
+		return nil, fmt.Errorf("index must be integer; got %T", o)
+	}
+
+	if i.Value < 0 || i.Value >= int64(len(arr.Elements)) {
+		return nil, fmt.Errorf("index %v out of bound", i.Value)
+	}
+	return arr.Elements[i.Value], nil
 }

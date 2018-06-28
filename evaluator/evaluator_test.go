@@ -330,3 +330,38 @@ func TestBuiltinLen(t *testing.T) {
 		}
 	}
 }
+
+func TestEvalArray(t *testing.T) {
+	o, err := eval("[1,2,3]")
+	if err != nil {
+		t.Fatal(err)
+	}
+	arr, ok := o.(*object.Array)
+	if !ok {
+		t.Fatalf("expected to get an array object; got %T", o)
+	}
+	if len(arr.Elements) != 3 {
+		t.Fatalf("3 elements expected; got %v", arr.Elements)
+	}
+}
+
+func TestEvalIndex(t *testing.T) {
+	tests := []struct {
+		code   string
+		expInt int64
+	}{
+		{"[1][0]", 1},
+		{"[1,2][1]", 2},
+		{"var ages = [15, 26, 17];ages[1]", 26},
+	}
+	for _, test := range tests {
+		o, err := eval(test.code)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = assertIntegerObject(o, test.expInt)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}

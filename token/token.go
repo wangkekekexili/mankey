@@ -30,10 +30,12 @@ const (
 	Comma     = ","
 	Semicolon = ";"
 
-	LParen = "("
-	RParen = ")"
-	LBrace = "{"
-	RBrace = "}"
+	LParen   = "("
+	RParen   = ")"
+	LBracket = "["
+	RBracket = "]"
+	LBrace   = "{"
+	RBrace   = "}"
 
 	Func   = "func"
 	Var    = "var"

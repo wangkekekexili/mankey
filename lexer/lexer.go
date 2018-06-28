@@ -177,6 +177,10 @@ func (r *Lexer) NextToken() *token.Token {
 		return token.New(token.LParen, "(")
 	case ')':
 		return token.New(token.RParen, ")")
+	case '[':
+		return token.New(token.LBracket, "[")
+	case ']':
+		return token.New(token.RBracket, "]")
 	case '{':
 		return token.New(token.LBrace, "{")
 	case '}':

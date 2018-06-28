@@ -101,6 +101,27 @@ func (s *String) String() string {
 	return s.Value
 }
 
+type Array struct {
+	Elements []Expression
+}
+
+func (a *Array) String() string {
+	var strs []string
+	for _, e := range a.Elements {
+		strs = append(strs, e.String())
+	}
+	return "[" + strings.Join(strs, ",") + "]"
+}
+
+type IndexExpression struct {
+	Left  Expression
+	Index Expression
+}
+
+func (i *IndexExpression) String() string {
+	return fmt.Sprintf("(%v[%v])", i.Left, i.Index)
+}
+
 type Operator string
 
 type PrefixExpression struct {
