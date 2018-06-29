@@ -298,6 +298,10 @@ func TestParseOperatorPrecedence(t *testing.T) {
 				},
 			},
 		},
+		{
+			expr:          "{}",
+			expExpression: &ast.Hash{Value: make(map[ast.Expression]ast.Expression)},
+		},
 	}
 	for _, test := range tests {
 		gotProgram, err := New(lexer.New(test.expr + ";")).ParseProgram()

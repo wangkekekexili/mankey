@@ -147,3 +147,41 @@ func (p *Parser) parseArray() (ast.Expression, error) {
 
 	return arr, nil
 }
+
+func (p *Parser) parseHash() (ast.Expression, error) {
+	hash := &ast.Hash{Value: make(map[ast.Expression]ast.Expression)}
+
+	p.nextToken()
+	if p.currentToken.Type == token.RBrace {
+		return hash, nil
+	}
+
+	for p.currentToken.Type != token.EOF {
+		key, err := p.parseExpression(Lowest)
+		if err != nil {
+			return nil, err
+		}
+
+		p.nextToken()
+		if p.currentToken.Type != token.Colon {
+			return nil, errUnexpectedToken{t: p.currentToken, exp: ":"}
+		}
+		p.nextToken()
+		value, err := p.parseExpression(Lowest)
+		if err != nil {
+			return nil, err
+		}
+
+		hash.Value[key] = value
+
+		p.nextToken()
+		if p.currentToken.Type == token.RBrace {
+			break
+		}
+		if p.currentToken.Type != token.Comma {
+			return nil, errUnexpectedToken{t: p.currentToken, exp: ","}
+		}
+		p.nextToken()
+	}
+	return hash, nil
+}

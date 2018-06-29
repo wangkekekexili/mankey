@@ -113,6 +113,18 @@ func (a *Array) String() string {
 	return "[" + strings.Join(strs, ",") + "]"
 }
 
+type Hash struct {
+	Value map[Expression]Expression
+}
+
+func (h *Hash) String() string {
+	var strs []string
+	for k, v := range h.Value {
+		strs = append(strs, fmt.Sprintf("%v: %v", k, v))
+	}
+	return "{" + strings.Join(strs, ",") + "}"
+}
+
 type IndexExpression struct {
 	Left  Expression
 	Index Expression
