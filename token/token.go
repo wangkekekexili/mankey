@@ -85,5 +85,5 @@ func (t *Token) Equals(k *Token) bool {
 }
 
 func (t *Token) String() string {
-	return fmt.Sprintf("[type=%v;literal=%v]", t.Type, t.Literal)
+	return fmt.Sprintf("[type='%v';literal='%v']", t.Type, t.Literal)
 }
