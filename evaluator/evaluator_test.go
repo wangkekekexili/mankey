@@ -353,6 +353,8 @@ func TestEvalIndex(t *testing.T) {
 		{"[1][0]", 1},
 		{"[1,2][1]", 2},
 		{"var ages = [15, 26, 17];ages[1]", 26},
+		{"{true: 42}[true]", 42},
+		{"{1: 10, 2: 100}[2]", 100},
 	}
 	for _, test := range tests {
 		o, err := eval(test.code)
@@ -363,5 +365,19 @@ func TestEvalIndex(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+	}
+}
+
+func TestEvalHash(t *testing.T) {
+	o, err := eval("{1:true, 2:false}")
+	if err != nil {
+		t.Fatal(err)
+	}
+	arr, ok := o.(*object.Hash)
+	if !ok {
+		t.Fatalf("expected to get a hash object; got %T", o)
+	}
+	if len(arr.Hash) != 2 {
+		t.Fatalf("2 elements expected; got %v", arr.Hash)
 	}
 }

@@ -1,6 +1,9 @@
 package object
 
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+)
 
 const ObjInteger = "INTEGER"
 
@@ -14,4 +17,8 @@ func (i *Integer) Type() ObjectType {
 
 func (i *Integer) String() string {
 	return strconv.FormatInt(i.Value, 10)
+}
+
+func (i *Integer) HashKey() HashKey {
+	return HashKey(fmt.Sprintf("%v_%v", ObjInteger, i.Value))
 }

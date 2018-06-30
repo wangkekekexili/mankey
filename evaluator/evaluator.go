@@ -42,6 +42,8 @@ func Eval(node ast.Node, env *object.Environment) (object.Object, error) {
 		return evalArray(node, env)
 	case *ast.IndexExpression:
 		return evalIndex(node, env)
+	case *ast.Hash:
+		return evalHash(node, env)
 	default:
 		return nil, fmt.Errorf("cannot evaluate %T", node)
 	}
@@ -305,26 +307,64 @@ func evalArray(node *ast.Array, env *object.Environment) (object.Object, error) 
 }
 
 func evalIndex(node *ast.IndexExpression, env *object.Environment) (object.Object, error) {
-	o, err := Eval(node.Left, env)
+	leftObj, err := Eval(node.Left, env)
 	if err != nil {
 		return nil, err
 	}
-	arr, ok := o.(*object.Array)
-	if !ok {
-		return nil, fmt.Errorf("index operation on non array object %T", o)
-	}
-
-	o, err = Eval(node.Index, env)
+	indexObj, err := Eval(node.Index, env)
 	if err != nil {
 		return nil, err
 	}
-	i, ok := o.(*object.Integer)
-	if !ok {
-		return nil, fmt.Errorf("index must be integer; got %T", o)
+
+	switch leftObj := leftObj.(type) {
+	case *object.Array:
+		i, ok := indexObj.(*object.Integer)
+		if !ok {
+			return nil, fmt.Errorf("index must be integer; got %T", indexObj)
+		}
+
+		if i.Value < 0 || i.Value >= int64(len(leftObj.Elements)) {
+			return nil, fmt.Errorf("index %v out of bound", i.Value)
+		}
+		return leftObj.Elements[i.Value], nil
+	case *object.Hash:
+		hashKey, ok := indexObj.(object.HashKeyer)
+		if !ok {
+			return nil, fmt.Errorf("cannot get hash key from %v", indexObj)
+		}
+		p, ok := leftObj.Hash[hashKey.HashKey()]
+		if !ok {
+			return object.Null, nil
+		}
+		return p.V, nil
+	default:
+		return nil, fmt.Errorf("index operation on non array object %T", leftObj)
+	}
+}
+
+func evalHash(node *ast.Hash, env *object.Environment) (object.Object, error) {
+	h := &object.Hash{Hash: make(map[object.HashKey]*object.HashPair)}
+
+	for k, v := range node.Value {
+		kObj, err := Eval(k, env)
+		if err != nil {
+			return nil, err
+		}
+		hashKey, ok := kObj.(object.HashKeyer)
+		if !ok {
+			return nil, fmt.Errorf("cannot get hash key from %v", k)
+		}
+
+		vObj, err := Eval(v, env)
+		if err != nil {
+			return nil, err
+		}
+
+		h.Hash[hashKey.HashKey()] = &object.HashPair{
+			K: kObj,
+			V: vObj,
+		}
 	}
 
-	if i.Value < 0 || i.Value >= int64(len(arr.Elements)) {
-		return nil, fmt.Errorf("index %v out of bound", i.Value)
-	}
-	return arr.Elements[i.Value], nil
+	return h, nil
 }

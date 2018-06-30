@@ -20,3 +20,11 @@ func (b *Boolean) Type() ObjectType {
 func (b *Boolean) String() string {
 	return strconv.FormatBool(b.Value)
 }
+
+func (b *Boolean) HashKey() HashKey {
+	if b.Value {
+		return ObjBoolean + "_true"
+	} else {
+		return ObjBoolean + "_false"
+	}
+}

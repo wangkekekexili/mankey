@@ -298,10 +298,6 @@ func TestParseOperatorPrecedence(t *testing.T) {
 				},
 			},
 		},
-		{
-			expr:          "{}",
-			expExpression: &ast.Hash{Value: make(map[ast.Expression]ast.Expression)},
-		},
 	}
 	for _, test := range tests {
 		gotProgram, err := New(lexer.New(test.expr + ";")).ParseProgram()
@@ -497,6 +493,51 @@ func TestIndex(t *testing.T) {
 	err = assertIntegerLiteral(index.Index, 3)
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestHash_empty(t *testing.T) {
+	gotExprStat, err := assertOneExpressionStatement("{}")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var expExpr ast.Expression = &ast.Hash{Value: make(map[ast.Expression]ast.Expression)}
+	if !reflect.DeepEqual(gotExprStat.Value, expExpr) {
+		t.Fatalf("got expression %v; want %v", gotExprStat.Value, expExpr)
+	}
+}
+
+func TestHash_stringKeyIntValue(t *testing.T) {
+	code := `{"one": 1, "two": 2, "three": 3}`
+	exp := map[string]int64{
+		"one":   1,
+		"two":   2,
+		"three": 3,
+	}
+
+	stat, err := assertOneExpressionStatement(code)
+	if err != nil {
+		t.Fatal(err)
+	}
+	hash, ok := stat.Value.(*ast.Hash)
+	if !ok {
+		t.Fatalf("expected to get a hash; got %T", stat.Value)
+	}
+	got := make(map[string]int64)
+	for k, v := range hash.Value {
+		str, ok := k.(*ast.String)
+		if !ok {
+			t.Fatalf("expect key to be a string; got %T", k)
+		}
+		i, ok := v.(*ast.Integer)
+		if !ok {
+			t.Fatalf("expect value to be an int; got %T", v)
+		}
+		got[str.Value] = i.Value
+	}
+
+	if !reflect.DeepEqual(exp, got) {
+		t.Fatalf("expect %v; got %v", exp, got)
 	}
 }
 
